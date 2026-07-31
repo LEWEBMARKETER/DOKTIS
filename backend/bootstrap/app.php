@@ -11,9 +11,17 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    // DOKTA Office et DOKTA Patient s'authentifient par jeton Sanctum (pas de
+    // session web), donc l'auth des canaux privés doit utiliser ce garde.
+    ->withBroadcasting(
+        __DIR__.'/../routes/channels.php',
+        ['middleware' => ['auth:sanctum']],
+    )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,
+            'staff' => \App\Http\Middleware\EnsureStaffUser::class,
+            'patient.account' => \App\Http\Middleware\EnsurePatientAccount::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

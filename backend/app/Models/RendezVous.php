@@ -14,8 +14,8 @@ class RendezVous extends Model
     protected $table = 'rendez_vous';
 
     protected $fillable = [
-        'cabinet_id', 'patient_id', 'praticien_id', 'motif', 'type',
-        'debut', 'fin', 'statut', 'notes', 'rappel_envoye_at', 'created_by',
+        'cabinet_id', 'patient_id', 'praticien_id', 'motif', 'type', 'source',
+        'reprogramme_depuis_id', 'debut', 'fin', 'statut', 'notes', 'rappel_envoye_at', 'created_by',
     ];
 
     protected function casts(): array
@@ -40,5 +40,10 @@ class RendezVous extends Model
     public function creePar(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function reprogrammeDepuis(): BelongsTo
+    {
+        return $this->belongsTo(RendezVous::class, 'reprogramme_depuis_id');
     }
 }

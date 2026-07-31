@@ -3,16 +3,29 @@
 namespace Database\Seeders;
 
 use App\Enums\RoleUtilisateur;
+use App\Models\Abonnement;
+use App\Models\Avis;
 use App\Models\Cabinet;
+use App\Models\CabinetHoraire;
+use App\Models\CabinetService;
 use App\Models\Consultation;
+use App\Models\Conversation;
+use App\Models\Depense;
+use App\Models\DentTraitement;
+use App\Models\Devis;
 use App\Models\Facture;
+use App\Models\Mutuelle;
 use App\Models\OrdonnanceModele;
 use App\Models\Patient;
+use App\Models\PatientAccount;
 use App\Models\PlanTraitement;
 use App\Models\RendezVous;
+use App\Models\Specialite;
+use App\Models\TicketSupport;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -222,6 +235,157 @@ class DatabaseSeeder extends Seeder
             };
         }
 
+        $this->seedFondationsPlateforme($cabinet, $admin, $medecin, $secretaire, $patients);
+
         $this->command?->info('Cabinet démo créé : admin@cabinet-etoile.dokta / password');
+        $this->command?->info('Compte patient démo : sonia@patient.dokta / password');
+    }
+
+    /**
+     * Données de démonstration pour les fondations de la plateforme 3-en-1 :
+     * annuaire (DOKTA Directory), compte patient (DOKTA Patient), et
+     * administration DOKTA (Super Admin).
+     */
+    private function seedFondationsPlateforme(
+        Cabinet $cabinet,
+        User $admin,
+        User $medecin,
+        User $secretaire,
+        \Illuminate\Support\Collection $patients,
+    ): void {
+        // --- Référentiels partagés par tous les cabinets ---
+        $specialites = collect([
+            'Cabinet dentaire', 'Médecin généraliste', 'Gynécologue', 'Pédiatre',
+            'Ophtalmologue', 'Laboratoire', "Centre d'imagerie",
+        ])->map(fn (string $nom) => Specialite::create(['nom' => $nom, 'slug' => Str::slug($nom)]));
+
+        $mutuelles = collect(['CNPS', 'Saham Assurance', 'Activa Assurance', 'Allianz Santé'])
+            ->map(fn (string $nom) => Mutuelle::create(['nom' => $nom]));
+
+        // --- DOKTA Directory : fiche publique du cabinet démo ---
+        $cabinet->update([
+            'quartier' => 'Bonapriso',
+            'latitude' => 4.0345,
+            'longitude' => 9.7043,
+            'description' => "Cabinet dentaire moderne au cœur de Douala, prise en charge des soins conservateurs, de l'orthodontie et de l'implantologie.",
+            'langues_parlees' => ['Français', 'Anglais'],
+            'accepte_urgences' => true,
+            'accessible_pmr' => true,
+            'site_web' => 'https://cabinet-etoile.dokta.example',
+            'visible_annuaire' => true,
+        ]);
+        $cabinet->specialites()->sync([$specialites[0]->id, $specialites[1]->id]);
+        $cabinet->mutuelles()->sync([$mutuelles[0]->id, $mutuelles[1]->id]);
+
+        foreach ([
+            [1, '08:00', '18:00'], [2, '08:00', '18:00'], [3, '08:00', '18:00'],
+            [4, '08:00', '18:00'], [5, '08:00', '18:00'], [6, '08:00', '13:00'],
+        ] as [$jour, $ouverture, $fermeture]) {
+            CabinetHoraire::create(['cabinet_id' => $cabinet->id, 'jour_semaine' => $jour, 'heure_ouverture' => $ouverture, 'heure_fermeture' => $fermeture]);
+        }
+        CabinetHoraire::create(['cabinet_id' => $cabinet->id, 'jour_semaine' => 0, 'ferme' => true]);
+
+        CabinetService::create(['cabinet_id' => $cabinet->id, 'nom' => 'Détartrage', 'prix_indicatif' => 15000, 'duree_minutes' => 30]);
+        CabinetService::create(['cabinet_id' => $cabinet->id, 'nom' => 'Consultation de contrôle', 'prix_indicatif' => 10000, 'duree_minutes' => 20]);
+        CabinetService::create(['cabinet_id' => $cabinet->id, 'nom' => 'Pose de couronne', 'prix_indicatif' => 85000, 'duree_minutes' => 60]);
+
+        // --- DOKTA Patient : un compte patient réel, lié à un dossier existant ---
+        $comptePatient = PatientAccount::create([
+            'nom' => 'Kamdem',
+            'prenom' => 'Sonia',
+            'email' => 'sonia@patient.dokta',
+            'telephone' => '690112233',
+            'password' => Hash::make('password'),
+            'date_naissance' => '1994-03-12',
+            'sexe' => 'F',
+        ]);
+
+        $dossierLie = $patients->first();
+        $dossierLie->update(['patient_account_id' => $comptePatient->id]);
+
+        $rdvPatientApp = RendezVous::create([
+            'cabinet_id' => $cabinet->id,
+            'patient_id' => $dossierLie->id,
+            'praticien_id' => $medecin->id,
+            'motif' => 'Douleur dentaire',
+            'type' => 'consultation',
+            'source' => 'patient_app',
+            'debut' => now()->addDays(3)->setTime(14, 0),
+            'fin' => now()->addDays(3)->setTime(14, 30),
+            'statut' => 'planifie',
+        ]);
+
+        $conversation = Conversation::create([
+            'cabinet_id' => $cabinet->id,
+            'patient_account_id' => $comptePatient->id,
+            'dernier_message_at' => now(),
+        ]);
+        $conversation->messages()->create(['expediteur_type' => 'patient', 'expediteur_id' => $comptePatient->id, 'contenu' => 'Bonjour, à quelle heure dois-je arriver mercredi ?']);
+        $conversation->messages()->create(['expediteur_type' => 'staff', 'expediteur_id' => $secretaire->id, 'contenu' => 'Bonjour Sonia, votre rendez-vous est à 14h00, merci d\'arriver 10 minutes en avance.', 'lu_at' => now()]);
+
+        Avis::create([
+            'cabinet_id' => $cabinet->id,
+            'patient_account_id' => $comptePatient->id,
+            'note' => 5,
+            'commentaire' => 'Accueil chaleureux et soins de qualité, je recommande !',
+        ]);
+        $cabinet->rafraichirNoteMoyenne();
+
+        DentTraitement::create([
+            'cabinet_id' => $cabinet->id,
+            'patient_id' => $dossierLie->id,
+            'numero_dent' => 26,
+            'type_traitement' => 'obturation',
+            'statut' => 'traite',
+            'praticien_id' => $medecin->id,
+            'date_traitement' => now()->subDays(10),
+            'notes' => 'Obturation composite suite à carie occlusale.',
+        ]);
+
+        // --- Devis : un proposé, un accepté puis converti en facture ---
+        Devis::create([
+            'cabinet_id' => $cabinet->id,
+            'patient_id' => $dossierLie->id,
+            'numero' => 'DEV-2026-00001',
+            'montant_total' => 45000,
+            'statut' => 'propose',
+            'date_emission' => now(),
+            'date_validite' => now()->addDays(30),
+        ])->lignes()->create(['designation' => 'Plan orthodontique - phase 1', 'quantite' => 1, 'prix_unitaire' => 45000, 'montant' => 45000]);
+
+        $devisAccepte = Devis::create([
+            'cabinet_id' => $cabinet->id,
+            'patient_id' => $patients[1]->id,
+            'numero' => 'DEV-2026-00002',
+            'montant_total' => 20000,
+            'statut' => 'accepte',
+            'date_emission' => now()->subDays(2),
+        ]);
+        $devisAccepte->lignes()->create(['designation' => 'Détartrage complet', 'quantite' => 1, 'prix_unitaire' => 20000, 'montant' => 20000]);
+
+        // --- Comptabilité ---
+        Depense::create(['cabinet_id' => $cabinet->id, 'categorie' => 'Fournitures médicales', 'designation' => 'Gants et compresses', 'montant' => 45000, 'date_depense' => now()->subDays(5), 'created_by' => $admin->id]);
+        Depense::create(['cabinet_id' => $cabinet->id, 'categorie' => 'Loyer', 'designation' => 'Loyer du mois', 'montant' => 250000, 'date_depense' => now()->startOfMonth(), 'created_by' => $admin->id]);
+
+        // --- Super Admin DOKTA ---
+        Abonnement::create([
+            'cabinet_id' => $cabinet->id,
+            'plan' => 'Pro',
+            'prix' => 25000,
+            'cycle_facturation' => 'mensuel',
+            'statut' => 'actif',
+            'date_debut' => now()->subMonths(2),
+            'mode_paiement' => 'mobile_money',
+            'taux_commission' => 5,
+        ]);
+
+        $ticket = TicketSupport::create([
+            'cabinet_id' => $cabinet->id,
+            'sujet' => "Question sur l'export comptable",
+            'description' => "Comment exporter le journal de caisse du mois dernier au format Excel ?",
+            'statut' => 'ouvert',
+            'priorite' => 'normale',
+        ]);
+        $ticket->messages()->create(['auteur_type' => 'staff', 'auteur_id' => $admin->id, 'contenu' => "Comment exporter le journal de caisse du mois dernier au format Excel ?"]);
     }
 }

@@ -14,7 +14,7 @@ class Patient extends Model
     use BelongsToCabinet, HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'cabinet_id', 'numero_dossier', 'nom', 'prenom', 'date_naissance', 'sexe',
+        'cabinet_id', 'patient_account_id', 'numero_dossier', 'nom', 'prenom', 'date_naissance', 'sexe',
         'telephone', 'email', 'adresse', 'groupe_sanguin', 'allergies',
         'antecedents_medicaux', 'contact_urgence_nom', 'contact_urgence_telephone',
         'notes', 'actif', 'created_by',
@@ -31,6 +31,11 @@ class Patient extends Model
     public function creePar(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function compte(): BelongsTo
+    {
+        return $this->belongsTo(PatientAccount::class, 'patient_account_id');
     }
 
     public function rendezVous(): HasMany

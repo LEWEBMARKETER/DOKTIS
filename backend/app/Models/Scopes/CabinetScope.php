@@ -3,6 +3,7 @@
 namespace App\Models\Scopes;
 
 use App\Enums\RoleUtilisateur;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Scope;
@@ -13,7 +14,21 @@ class CabinetScope implements Scope
     {
         $user = auth()->user();
 
-        if (! $user || $user->role === RoleUtilisateur::SuperAdmin->value) {
+        if (! $user) {
+            return;
+        }
+
+        // DOKTA Patient et DOKTA Office partagent le même mécanisme de jeton :
+        // un compte patient n'a pas de cabinet_id et ne doit jamais recevoir de
+        // données scopées par cabinet via ce chemin (les contrôleurs patient
+        // utilisent withoutGlobalScopes() explicitement quand c'est légitime).
+        if (! $user instanceof User) {
+            $builder->whereRaw('1 = 0');
+
+            return;
+        }
+
+        if ($user->role === RoleUtilisateur::SuperAdmin->value) {
             return;
         }
 

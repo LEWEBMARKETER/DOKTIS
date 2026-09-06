@@ -1,4 +1,4 @@
-# DOKTA
+# DOKTIS
 
 Plateforme numérique de gestion des cabinets médicaux et de prise de rendez-vous, composée de trois modules interconnectés partageant les mêmes données en temps réel :
 

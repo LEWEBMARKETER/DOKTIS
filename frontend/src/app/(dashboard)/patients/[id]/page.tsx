@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { api, ApiError } from '@/lib/api';
+import { api, ApiError, downloadAuthenticated } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { Badge, Button, Card, ErrorText, Field, Input, Modal, PageHeader, Select, Textarea } from '@/components/ui';
 import type { Consultation, Ordonnance, Patient, PlanTraitement } from '@/types';
@@ -17,7 +17,7 @@ interface DocumentItem {
   id: number;
   type: string;
   titre: string | null;
-  url: string;
+  nom_fichier: string;
   created_at: string;
 }
 
@@ -51,7 +51,7 @@ export default function PatientDetailPage() {
   }, [patientId]);
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => void load());
   }, [load]);
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -169,16 +169,15 @@ export default function PatientDetailPage() {
             {documents.length === 0 && <p className="text-sm text-slate-400">Aucun document.</p>}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {documents.map((doc) => (
-                <a
+                <button
+                  type="button"
                   key={doc.id}
-                  href={doc.url}
-                  target="_blank"
-                  rel="noreferrer"
+                  onClick={() => void downloadAuthenticated(`/documents/${doc.id}/telecharger`, doc.nom_fichier)}
                   className="flex flex-col items-center gap-1 rounded-lg border border-slate-100 p-2 text-center text-xs text-slate-500 hover:border-teal-300"
                 >
                   <span className="text-2xl">{doc.type === 'pdf' ? '📄' : '🖼️'}</span>
                   <span className="truncate w-full">{doc.titre}</span>
-                </a>
+                </button>
               ))}
             </div>
           </Card>

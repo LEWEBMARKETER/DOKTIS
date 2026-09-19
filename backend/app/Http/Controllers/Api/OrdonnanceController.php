@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ordonnance;
+use App\Support\TenantRule;
 use Illuminate\Http\Request;
 
 class OrdonnanceController extends Controller
@@ -22,9 +23,9 @@ class OrdonnanceController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'patient_id' => ['required', 'exists:patients,id'],
-            'consultation_id' => ['nullable', 'exists:consultations,id'],
-            'ordonnance_modele_id' => ['nullable', 'exists:ordonnance_modeles,id'],
+            'patient_id' => ['required', TenantRule::exists($request->user(), 'patients')],
+            'consultation_id' => ['nullable', TenantRule::exists($request->user(), 'consultations')],
+            'ordonnance_modele_id' => ['nullable', TenantRule::exists($request->user(), 'ordonnance_modeles')],
             'contenu' => ['required', 'string'],
             'date_emission' => ['required', 'date'],
         ]);

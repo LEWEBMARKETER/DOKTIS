@@ -51,8 +51,10 @@ export default function FacturationPage() {
   }
 
   useEffect(() => {
-    load();
-    api.get<{ data: Patient[] }>('/patients?par_page=200').then((res) => setPatients(res.data));
+    queueMicrotask(() => {
+      load();
+      void api.get<{ data: Patient[] }>('/patients?par_page=200').then((res) => setPatients(res.data));
+    });
   }, []);
 
   function updateLigne(index: number, key: keyof LigneForm, value: string) {

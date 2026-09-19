@@ -38,7 +38,6 @@ export default function PatientsPage() {
   useEffect(() => {
     const timeout = setTimeout(() => load(search), search ? 300 : 0);
     return () => clearTimeout(timeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   function update<K extends keyof typeof form>(key: K, value: string) {

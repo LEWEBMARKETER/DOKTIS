@@ -9,6 +9,7 @@ use App\Models\Ordonnance;
 use App\Models\Patient;
 use App\Models\PlanTraitement;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Vue en lecture seule, pour un patient authentifié, de ses dossiers médicaux
@@ -46,8 +47,17 @@ class DossierController extends Controller
             ->whereIn('patient_id', $this->dossierIds($request))
             ->with(['patient' => $this->patientAvecCabinet()])
             ->latest()
-            ->get()
-            ->map(fn (Document $document) => [...$document->toArray(), 'url' => $document->url()]);
+            ->get();
+    }
+
+    public function telechargerDocument(Request $request, int $document)
+    {
+        $document = Document::withoutGlobalScopes()
+            ->whereIn('patient_id', $this->dossierIds($request))
+            ->findOrFail($document);
+        abort_unless(Storage::disk($document->disque)->exists($document->chemin), 404);
+
+        return Storage::disk($document->disque)->download($document->chemin, $document->nom_fichier);
     }
 
     public function factures(Request $request)

@@ -28,7 +28,7 @@ class CabinetScope implements Scope
             return;
         }
 
-        if ($user->role === RoleUtilisateur::SuperAdmin->value) {
+        if ($user->role === RoleUtilisateur::SuperAdmin) {
             return;
         }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\DentTraitement;
 use App\Models\Patient;
+use App\Support\TenantRule;
 use Illuminate\Http\Request;
 
 class SchemaDentaireController extends Controller
@@ -65,8 +66,8 @@ class SchemaDentaireController extends Controller
             'numero_dent' => ['required', 'integer', 'min:11', 'max:48'],
             'type_traitement' => ['required', 'string', 'max:100'],
             'statut' => ['required', 'in:sain,a_traiter,traite,absent'],
-            'consultation_id' => ['nullable', 'exists:consultations,id'],
-            'plan_traitement_id' => ['nullable', 'exists:plans_traitement,id'],
+            'consultation_id' => ['nullable', TenantRule::exists($request->user(), 'consultations')],
+            'plan_traitement_id' => ['nullable', TenantRule::exists($request->user(), 'plans_traitement')],
             'date_traitement' => ['required', 'date'],
             'notes' => ['nullable', 'string'],
         ]);

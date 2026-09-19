@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    refresh();
+    queueMicrotask(() => void refresh());
   }, [refresh]);
 
   const login = useCallback(

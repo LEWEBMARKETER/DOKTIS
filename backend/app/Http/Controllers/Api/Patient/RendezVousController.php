@@ -9,11 +9,15 @@ use App\Models\Cabinet;
 use App\Models\Patient;
 use App\Models\RendezVous;
 use App\Models\User;
+use App\Services\DisponibiliteRendezVous;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class RendezVousController extends Controller
 {
+    public function __construct(private readonly DisponibiliteRendezVous $disponibilite) {}
+
     /**
      * Tous les rendez-vous du patient, tous cabinets confondus.
      */
@@ -48,44 +52,27 @@ class RendezVousController extends Controller
             return response()->json(['message' => "Ce praticien n'appartient pas à ce cabinet."], 422);
         }
 
-        $conflit = RendezVous::withoutGlobalScopes()
-            ->where('praticien_id', $praticien->id)
-            ->where('statut', '!=', 'annule')
-            ->where('debut', '<', $data['fin'])
-            ->where('fin', '>', $data['debut'])
-            ->exists();
-
-        if ($conflit) {
-            return response()->json(['message' => 'Ce créneau ne semble plus disponible, merci de recharger les disponibilités.'], 422);
-        }
-
         $account = $request->user();
-        $dossier = Patient::withoutGlobalScopes()->firstOrCreate(
-            ['cabinet_id' => $cabinet->id, 'patient_account_id' => $account->id],
-            [
-                'numero_dossier' => $this->genererNumeroDossier($cabinet->id),
-                'nom' => $account->nom,
-                'prenom' => $account->prenom,
-                'telephone' => $account->telephone,
-                'email' => $account->email,
-                'date_naissance' => $account->date_naissance,
-                'sexe' => $account->sexe,
-                'contact_urgence_nom' => $account->contact_urgence_nom,
-                'contact_urgence_telephone' => $account->contact_urgence_telephone,
-            ]
-        );
+        $rendezVous = DB::transaction(function () use ($account, $cabinet, $praticien, $data) {
+            abort_if($this->disponibilite->conflit($praticien->id, $data['debut'], $data['fin']), 422,
+                'Ce créneau ne semble plus disponible, merci de recharger les disponibilités.');
+            $dossier = Patient::withoutGlobalScopes()->firstOrCreate(
+                ['cabinet_id' => $cabinet->id, 'patient_account_id' => $account->id],
+                [
+                    'numero_dossier' => $this->genererNumeroDossier($cabinet->id), 'nom' => $account->nom,
+                    'prenom' => $account->prenom, 'telephone' => $account->telephone, 'email' => $account->email,
+                    'date_naissance' => $account->date_naissance, 'sexe' => $account->sexe,
+                    'contact_urgence_nom' => $account->contact_urgence_nom,
+                    'contact_urgence_telephone' => $account->contact_urgence_telephone,
+                ]
+            );
 
-        $rendezVous = RendezVous::withoutGlobalScopes()->create([
-            'cabinet_id' => $cabinet->id,
-            'patient_id' => $dossier->id,
-            'praticien_id' => $praticien->id,
-            'motif' => $data['motif'] ?? null,
-            'type' => 'consultation',
-            'source' => 'patient_app',
-            'debut' => $data['debut'],
-            'fin' => $data['fin'],
-            'statut' => 'planifie',
-        ]);
+            return RendezVous::withoutGlobalScopes()->create([
+                'cabinet_id' => $cabinet->id, 'patient_id' => $dossier->id, 'praticien_id' => $praticien->id,
+                'motif' => $data['motif'] ?? null, 'type' => 'consultation', 'source' => 'patient_app',
+                'debut' => $data['debut'], 'fin' => $data['fin'], 'statut' => 'planifie',
+            ]);
+        });
 
         broadcast(new RendezVousMisAJour($rendezVous));
 

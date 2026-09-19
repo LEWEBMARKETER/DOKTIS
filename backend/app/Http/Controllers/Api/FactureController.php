@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Facture;
+use App\Models\SequenceFacturation;
+use App\Support\TenantRule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -21,14 +23,16 @@ class FactureController extends Controller
             $query->where('statut', $statut);
         }
 
-        return $query->latest('date_emission')->paginate($request->integer('par_page', 20));
+        $parPage = min(max($request->integer('par_page', 20), 1), 100);
+
+        return $query->latest('date_emission')->paginate($parPage);
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'patient_id' => ['required', 'exists:patients,id'],
-            'consultation_id' => ['nullable', 'exists:consultations,id'],
+            'patient_id' => ['required', TenantRule::exists($request->user(), 'patients')],
+            'consultation_id' => ['nullable', TenantRule::exists($request->user(), 'consultations')],
             'date_emission' => ['required', 'date'],
             'date_echeance' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
@@ -85,6 +89,8 @@ class FactureController extends Controller
 
     public function destroy(Facture $facture)
     {
+        abort_unless($facture->statut === 'brouillon' && (float) $facture->montant_paye === 0.0, 422,
+            'Une facture envoyée ou payée doit être annulée et ne peut pas être supprimée.');
         $facture->delete();
 
         return response()->json(status: 204);
@@ -94,7 +100,14 @@ class FactureController extends Controller
     {
         $cabinetId = $request->user()->cabinet_id;
         $annee = now()->format('Y');
-        $sequence = Facture::where('cabinet_id', $cabinetId)->count() + 1;
+        SequenceFacturation::query()->insertOrIgnore([
+            'cabinet_id' => $cabinetId, 'annee' => (int) $annee, 'dernier_numero' => 0,
+        ]);
+        $compteur = SequenceFacturation::query()
+            ->where('cabinet_id', $cabinetId)->where('annee', (int) $annee)
+            ->lockForUpdate()->firstOrFail();
+        $compteur->increment('dernier_numero');
+        $sequence = $compteur->dernier_numero;
 
         return sprintf('FAC-%s-%05d', $annee, $sequence);
     }

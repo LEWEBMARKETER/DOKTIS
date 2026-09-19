@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Devis;
+use App\Support\TenantRule;
 use App\Models\Facture;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +29,7 @@ class DevisController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'patient_id' => ['required', 'exists:patients,id'],
+            'patient_id' => ['required', TenantRule::exists($request->user(), 'patients')],
             'date_emission' => ['required', 'date'],
             'date_validite' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],

@@ -5,11 +5,15 @@ namespace App\Http\Controllers\Api;
 use App\Events\RendezVousMisAJour;
 use App\Http\Controllers\Controller;
 use App\Models\RendezVous;
+use App\Services\DisponibiliteRendezVous;
+use App\Support\TenantRule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class RendezVousController extends Controller
 {
+    public function __construct(private readonly DisponibiliteRendezVous $disponibilite) {}
+
     public function index(Request $request)
     {
         $query = RendezVous::query()->with(['patient', 'praticien']);
@@ -36,8 +40,8 @@ class RendezVousController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'patient_id' => ['required', 'exists:patients,id'],
-            'praticien_id' => ['required', 'exists:users,id'],
+            'patient_id' => ['required', TenantRule::exists($request->user(), 'patients')],
+            'praticien_id' => ['required', TenantRule::exists($request->user(), 'users')->where('actif', true)],
             'motif' => ['nullable', 'string', 'max:255'],
             'type' => ['nullable', 'in:consultation,controle,urgence,soin'],
             'debut' => ['required', 'date'],
@@ -45,22 +49,12 @@ class RendezVousController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        $conflit = RendezVous::where('praticien_id', $data['praticien_id'])
-            ->where('statut', '!=', 'annule')
-            ->where('debut', '<', $data['fin'])
-            ->where('fin', '>', $data['debut'])
-            ->exists();
+        $rendezVous = DB::transaction(function () use ($data, $request) {
+            abort_if($this->disponibilite->conflit($data['praticien_id'], $data['debut'], $data['fin']), 422,
+                'Ce créneau chevauche un autre rendez-vous du praticien.');
 
-        if ($conflit) {
-            return response()->json([
-                'message' => 'Ce créneau chevauche un autre rendez-vous du praticien.',
-            ], 422);
-        }
-
-        $rendezVous = RendezVous::create([
-            ...$data,
-            'created_by' => $request->user()->id,
-        ]);
+            return RendezVous::create([...$data, 'created_by' => $request->user()->id]);
+        });
 
         broadcast(new RendezVousMisAJour($rendezVous));
 
@@ -75,8 +69,8 @@ class RendezVousController extends Controller
     public function update(Request $request, RendezVous $rendezVous)
     {
         $data = $request->validate([
-            'patient_id' => ['sometimes', 'exists:patients,id'],
-            'praticien_id' => ['sometimes', 'exists:users,id'],
+            'patient_id' => ['sometimes', TenantRule::exists($request->user(), 'patients')],
+            'praticien_id' => ['sometimes', TenantRule::exists($request->user(), 'users')->where('actif', true)],
             'motif' => ['nullable', 'string', 'max:255'],
             'type' => ['nullable', 'in:consultation,controle,urgence,soin'],
             'debut' => ['sometimes', 'date'],
@@ -85,7 +79,14 @@ class RendezVousController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        $rendezVous->update($data);
+        DB::transaction(function () use ($data, $rendezVous) {
+            $praticienId = $data['praticien_id'] ?? $rendezVous->praticien_id;
+            $debut = $data['debut'] ?? $rendezVous->debut->toISOString();
+            $fin = $data['fin'] ?? $rendezVous->fin->toISOString();
+            abort_if($this->disponibilite->conflit($praticienId, $debut, $fin, $rendezVous->id), 422,
+                'Ce créneau chevauche un autre rendez-vous du praticien.');
+            $rendezVous->update($data);
+        });
 
         broadcast(new RendezVousMisAJour($rendezVous));
 
@@ -110,18 +111,9 @@ class RendezVousController extends Controller
             'fin' => ['required', 'date', 'after:debut'],
         ]);
 
-        $conflit = RendezVous::where('praticien_id', $rendezVous->praticien_id)
-            ->where('id', '!=', $rendezVous->id)
-            ->where('statut', '!=', 'annule')
-            ->where('debut', '<', $data['fin'])
-            ->where('fin', '>', $data['debut'])
-            ->exists();
-
-        if ($conflit) {
-            return response()->json(['message' => 'Ce créneau chevauche un autre rendez-vous du praticien.'], 422);
-        }
-
         $nouveau = DB::transaction(function () use ($rendezVous, $data, $request) {
+            abort_if($this->disponibilite->conflit($rendezVous->praticien_id, $data['debut'], $data['fin'], $rendezVous->id), 422,
+                'Ce créneau chevauche un autre rendez-vous du praticien.');
             $rendezVous->update(['statut' => 'reprogramme']);
 
             return RendezVous::create([

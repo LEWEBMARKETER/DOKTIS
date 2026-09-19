@@ -48,7 +48,7 @@ export default function FactureDetailPage() {
   }, [params.id]);
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => void load());
   }, [load]);
 
   if (!facture) return <p className="text-slate-400">Chargement…</p>;

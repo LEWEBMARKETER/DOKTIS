@@ -41,6 +41,9 @@ export default function LoginPage() {
           <Field label="Mot de passe">
             <Input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
           </Field>
+          <Link href="/forgot-password" className="text-right text-sm font-medium text-teal-600 hover:underline">
+            Mot de passe oublié ?
+          </Link>
           <Button type="submit" disabled={loading}>
             {loading ? 'Connexion…' : 'Se connecter'}
           </Button>

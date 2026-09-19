@@ -79,3 +79,16 @@ export const api = {
     request<T>(path, { method: 'PUT', body: JSON.stringify(body ?? {}) }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 };
+
+export async function downloadAuthenticated(path: string, filename: string): Promise<void> {
+  const response = await fetch(`${API_URL}${path}`, {
+    headers: { Accept: 'application/octet-stream', Authorization: `Bearer ${getToken() ?? ''}` },
+  });
+  if (!response.ok) throw new ApiError('Téléchargement impossible.', response.status);
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}

@@ -20,6 +20,7 @@ class PaiementController extends Controller
      */
     public function store(Request $request, Facture $facture)
     {
+        $facture = DB::transaction(fn () => Facture::query()->lockForUpdate()->findOrFail($facture->id));
         $data = $request->validate([
             'montant' => ['required', 'numeric', 'min:0.01', 'max:'.$facture->solde],
             'mode_paiement' => ['required', 'in:especes,carte,mobile_money,virement,cheque'],
@@ -30,6 +31,8 @@ class PaiementController extends Controller
         ]);
 
         $paiement = DB::transaction(function () use ($data, $facture, $request) {
+            $facture = Facture::query()->lockForUpdate()->findOrFail($facture->id);
+            abort_if((float) $data['montant'] > $facture->solde, 422, 'Le paiement dépasse le solde restant.');
             $paiement = $facture->paiements()->create([
                 ...$data,
                 'created_by' => $request->user()->id,

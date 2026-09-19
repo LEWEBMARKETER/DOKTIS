@@ -62,7 +62,9 @@ class CabinetController extends Controller
             });
         }
 
-        return $query->orderByDesc('note_moyenne')->paginate($request->integer('par_page', 20));
+        $parPage = min(max($request->integer('par_page', 20), 1), 100);
+
+        return $query->orderByDesc('note_moyenne')->paginate($parPage);
     }
 
     public function show(Cabinet $cabinet)

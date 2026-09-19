@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\PlanTraitement;
+use App\Support\TenantRule;
 use Illuminate\Http\Request;
 
 class PlanTraitementController extends Controller
@@ -22,9 +23,9 @@ class PlanTraitementController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'patient_id' => ['required', 'exists:patients,id'],
-            'praticien_id' => ['required', 'exists:users,id'],
-            'consultation_id' => ['nullable', 'exists:consultations,id'],
+            'patient_id' => ['required', TenantRule::exists($request->user(), 'patients')],
+            'praticien_id' => ['required', TenantRule::exists($request->user(), 'users')->where('actif', true)],
+            'consultation_id' => ['nullable', TenantRule::exists($request->user(), 'consultations')],
             'titre' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'cout_estime' => ['nullable', 'numeric'],

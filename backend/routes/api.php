@@ -42,7 +42,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::post('/auth/register-cabinet', [AuthController::class, 'registerCabinet']);
-Route::post('/auth/login', [AuthController::class, 'login']);
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:login');
+Route::post('/auth/mot-de-passe-oublie', [AuthController::class, 'forgotPassword'])->middleware('throttle:password-reset');
+Route::post('/auth/reinitialiser-mot-de-passe', [AuthController::class, 'resetPassword'])->middleware('throttle:password-reset');
 
 Route::middleware(['auth:sanctum', 'staff'])->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
@@ -62,21 +64,26 @@ Route::middleware(['auth:sanctum', 'staff'])->group(function () {
     Route::patch('plans-traitement/{planTraitement}/etapes/{etape}', [PlanTraitementController::class, 'majEtape']);
 
     Route::apiResource('documents', DocumentController::class)->only(['index', 'store', 'destroy']);
+    Route::get('documents/{document}/telecharger', [DocumentController::class, 'download']);
 
     Route::apiResource('ordonnance-modeles', OrdonnanceModeleController::class)->except('show')->parameters(['ordonnance-modeles' => 'ordonnanceModele']);
     Route::apiResource('ordonnances', OrdonnanceController::class)->only(['index', 'store', 'show', 'destroy']);
 
-    Route::apiResource('factures', FactureController::class);
-    Route::get('factures/{facture}/paiements', [PaiementController::class, 'index']);
-    Route::post('factures/{facture}/paiements', [PaiementController::class, 'store']);
-    Route::delete('factures/{facture}/paiements/{paiement}', [PaiementController::class, 'destroy']);
+    Route::get('factures', [FactureController::class, 'index'])->middleware('role:administrateur,secretaire');
+    Route::get('factures/{facture}', [FactureController::class, 'show'])->middleware('role:administrateur,secretaire');
+    Route::post('factures', [FactureController::class, 'store'])->middleware('role:administrateur,secretaire');
+    Route::patch('factures/{facture}', [FactureController::class, 'update'])->middleware('role:administrateur,secretaire');
+    Route::delete('factures/{facture}', [FactureController::class, 'destroy'])->middleware('role:administrateur');
+    Route::get('factures/{facture}/paiements', [PaiementController::class, 'index'])->middleware('role:administrateur,secretaire');
+    Route::post('factures/{facture}/paiements', [PaiementController::class, 'store'])->middleware('role:administrateur,secretaire');
+    Route::delete('factures/{facture}/paiements/{paiement}', [PaiementController::class, 'destroy'])->middleware('role:administrateur');
 
-    Route::apiResource('devis', DevisController::class)->parameters(['devis' => 'devis']);
-    Route::post('devis/{devis}/convertir', [DevisController::class, 'convertir']);
+    Route::apiResource('devis', DevisController::class)->parameters(['devis' => 'devis'])->middleware('role:administrateur,secretaire');
+    Route::post('devis/{devis}/convertir', [DevisController::class, 'convertir'])->middleware('role:administrateur,secretaire');
 
-    Route::apiResource('depenses', DepenseController::class)->only(['index', 'store', 'update', 'destroy']);
-    Route::get('comptabilite/journal-caisse', [ComptabiliteController::class, 'journal']);
-    Route::get('comptabilite/journal-caisse/export', [ComptabiliteController::class, 'exportCsv']);
+    Route::apiResource('depenses', DepenseController::class)->only(['index', 'store', 'update', 'destroy'])->middleware('role:administrateur');
+    Route::get('comptabilite/journal-caisse', [ComptabiliteController::class, 'journal'])->middleware('role:administrateur');
+    Route::get('comptabilite/journal-caisse/export', [ComptabiliteController::class, 'exportCsv'])->middleware('role:administrateur');
 
     Route::get('users', [UserController::class, 'index']);
 
@@ -135,8 +142,8 @@ Route::middleware(['auth:sanctum', 'staff'])->group(function () {
 */
 
 Route::prefix('patient')->group(function () {
-    Route::post('/auth/register', [PatientAuthController::class, 'register']);
-    Route::post('/auth/login', [PatientAuthController::class, 'login']);
+    Route::post('/auth/register', [PatientAuthController::class, 'register'])->middleware('throttle:registration');
+    Route::post('/auth/login', [PatientAuthController::class, 'login'])->middleware('throttle:login');
 
     Route::middleware(['auth:sanctum', 'patient.account'])->group(function () {
         Route::post('/auth/logout', [PatientAuthController::class, 'logout']);
@@ -154,6 +161,7 @@ Route::prefix('patient')->group(function () {
         Route::get('/mes-dossiers', [PatientDossierController::class, 'index']);
         Route::get('/mes-ordonnances', [PatientDossierController::class, 'ordonnances']);
         Route::get('/mes-documents', [PatientDossierController::class, 'documents']);
+        Route::get('/mes-documents/{document}/telecharger', [PatientDossierController::class, 'telechargerDocument']);
         Route::get('/mes-factures', [PatientDossierController::class, 'factures']);
         Route::get('/mes-plans-traitement', [PatientDossierController::class, 'plansTraitement']);
 

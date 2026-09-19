@@ -34,9 +34,11 @@ export default function AgendaPage() {
   }
 
   useEffect(() => {
-    load();
-    api.get<{ data: Patient[] }>('/patients?par_page=200').then((res) => setPatients(res.data));
-    api.get<User[]>('/users').then(setPraticiens).catch(() => setPraticiens(user ? [user] : []));
+    queueMicrotask(() => {
+      void load();
+      void api.get<{ data: Patient[] }>('/patients?par_page=200').then((res) => setPatients(res.data));
+      void api.get<User[]>('/users').then(setPraticiens).catch(() => setPraticiens(user ? [user] : []));
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

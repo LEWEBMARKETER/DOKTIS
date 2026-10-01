@@ -54,12 +54,20 @@ export default function CabinetDirectoryPage() {
           <h1 className="text-2xl font-bold text-slate-900">{cabinet.nom}</h1>
           <p className="text-slate-500">{[cabinet.quartier, cabinet.ville].filter(Boolean).join(', ')}</p>
         </div>
-        {Number(cabinet.note_moyenne) > 0 && (
-          <span className="text-lg font-medium text-amber-600">
-            ★ {Number(cabinet.note_moyenne).toFixed(1)}
-            <span className="text-sm text-slate-400"> ({cabinet.nombre_avis} avis)</span>
-          </span>
-        )}
+        <div className="flex items-center gap-4">
+          {Number(cabinet.note_moyenne) > 0 && (
+            <span className="text-lg font-medium text-amber-600">
+              ★ {Number(cabinet.note_moyenne).toFixed(1)}
+              <span className="text-sm text-slate-400"> ({cabinet.nombre_avis} avis)</span>
+            </span>
+          )}
+          <Link
+            href={`/patient/rendez-vous/nouveau?cabinet=${cabinet.id}`}
+            className="inline-flex items-center justify-center rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white hover:bg-teal-700"
+          >
+            Prendre rendez-vous
+          </Link>
+        </div>
       </div>
 
       <div className="mt-2 flex flex-wrap gap-1.5">

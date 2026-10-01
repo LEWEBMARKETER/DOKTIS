@@ -8,9 +8,14 @@ export default function DirectoryLayout({ children }: { children: React.ReactNod
           <Link href="/directory" className="text-lg font-bold text-teal-700">
             DOKTA <span className="font-normal text-slate-400">Directory</span>
           </Link>
-          <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-teal-700">
-            Espace cabinet
-          </Link>
+          <div className="flex items-center gap-4 text-sm font-medium">
+            <Link href="/patient" className="text-slate-600 hover:text-teal-700">
+              Espace patient
+            </Link>
+            <Link href="/login" className="text-slate-600 hover:text-teal-700">
+              Espace cabinet
+            </Link>
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>

@@ -159,3 +159,80 @@ export interface Paginated<T> {
   last_page: number;
   total: number;
 }
+
+export interface Specialite {
+  id: number;
+  nom: string;
+  slug: string;
+}
+
+export interface Mutuelle {
+  id: number;
+  nom: string;
+}
+
+export interface CabinetPhoto {
+  id: number;
+  chemin: string;
+  disque: string;
+  ordre: number;
+}
+
+export interface CabinetHoraire {
+  id: number;
+  jour_semaine: number;
+  heure_ouverture: string | null;
+  heure_fermeture: string | null;
+  ferme: boolean;
+}
+
+export interface CabinetServicePublic {
+  id: number;
+  nom: string;
+  description: string | null;
+  prix_indicatif: string | null;
+  duree_minutes: number | null;
+}
+
+export interface AvisPublic {
+  id: number;
+  note: number;
+  commentaire: string | null;
+  reponse_cabinet: string | null;
+  reponse_at: string | null;
+  created_at: string;
+  auteur?: { nom: string; prenom: string } | null;
+}
+
+export interface PraticienPublic {
+  id: number;
+  name: string;
+  role: Role;
+  specialite: string | null;
+}
+
+export interface DirectoryCabinet {
+  id: number;
+  nom: string;
+  slug: string;
+  type: string;
+  telephone: string | null;
+  email: string | null;
+  adresse: string | null;
+  ville: string | null;
+  quartier: string | null;
+  description: string | null;
+  langues_parlees: string[] | null;
+  accepte_urgences: boolean;
+  accessible_pmr: boolean;
+  site_web: string | null;
+  note_moyenne: string;
+  nombre_avis: number;
+  specialites?: Specialite[];
+  mutuelles?: Mutuelle[];
+  photos?: CabinetPhoto[];
+  horaires?: CabinetHoraire[];
+  services?: CabinetServicePublic[];
+  avis?: AvisPublic[];
+  users?: PraticienPublic[];
+}

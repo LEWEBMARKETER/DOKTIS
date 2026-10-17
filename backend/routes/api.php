@@ -69,15 +69,17 @@ Route::middleware(['auth:sanctum', 'staff'])->group(function () {
     Route::apiResource('ordonnance-modeles', OrdonnanceModeleController::class)->except('show')->parameters(['ordonnance-modeles' => 'ordonnanceModele']);
     Route::apiResource('ordonnances', OrdonnanceController::class)->only(['index', 'store', 'show', 'destroy']);
 
-    Route::apiResource('factures', FactureController::class);
+    // La suppression d'une facture, d'un paiement, d'un devis ou d'une
+    // dépense est réservée aux administrateurs (groupe role:administrateur
+    // plus bas) : ce sont des écritures comptables, pas de simples fiches.
+    Route::apiResource('factures', FactureController::class)->except('destroy');
     Route::get('factures/{facture}/paiements', [PaiementController::class, 'index']);
     Route::post('factures/{facture}/paiements', [PaiementController::class, 'store']);
-    Route::delete('factures/{facture}/paiements/{paiement}', [PaiementController::class, 'destroy']);
 
-    Route::apiResource('devis', DevisController::class)->parameters(['devis' => 'devis']);
+    Route::apiResource('devis', DevisController::class)->parameters(['devis' => 'devis'])->except('destroy');
     Route::post('devis/{devis}/convertir', [DevisController::class, 'convertir']);
 
-    Route::apiResource('depenses', DepenseController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::apiResource('depenses', DepenseController::class)->only(['index', 'store', 'update']);
     Route::get('comptabilite/journal-caisse', [ComptabiliteController::class, 'journal']);
     Route::get('comptabilite/journal-caisse/export', [ComptabiliteController::class, 'exportCsv']);
 
@@ -99,6 +101,11 @@ Route::middleware(['auth:sanctum', 'staff'])->group(function () {
         Route::post('users', [UserController::class, 'store']);
         Route::patch('users/{user}', [UserController::class, 'update']);
         Route::delete('users/{user}', [UserController::class, 'destroy']);
+
+        Route::delete('factures/{facture}', [FactureController::class, 'destroy']);
+        Route::delete('factures/{facture}/paiements/{paiement}', [PaiementController::class, 'destroy']);
+        Route::delete('devis/{devis}', [DevisController::class, 'destroy']);
+        Route::delete('depenses/{depense}', [DepenseController::class, 'destroy']);
 
         Route::get('parametres/cabinet', [ParametresController::class, 'show']);
         Route::patch('parametres/cabinet', [ParametresController::class, 'update']);

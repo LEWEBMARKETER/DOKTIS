@@ -19,7 +19,7 @@ export default function CabinetsPage() {
 
   return (
     <div>
-      <PageHeader title="Cabinets DOKTA" description="Administration multi-cabinets (super administrateur)." />
+      <PageHeader title="Cabinets DOKTIS" description="Administration multi-cabinets (super administrateur)." />
 
       <Card className="overflow-x-auto p-0">
         <table className="w-full min-w-[640px] text-left text-sm">

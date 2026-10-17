@@ -33,7 +33,7 @@ class DatabaseSeeder extends Seeder
     {
         // Super administrateur DOKTA (gère tous les cabinets, plan/abonnements).
         User::create([
-            'name' => 'Support DOKTA',
+            'name' => 'Support DOKTIS',
             'email' => 'superadmin@dokta.app',
             'password' => Hash::make('password'),
             'role' => RoleUtilisateur::SuperAdmin,

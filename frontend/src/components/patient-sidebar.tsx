@@ -19,7 +19,7 @@ export function PatientSidebar() {
   return (
     <aside className="flex h-screen w-64 flex-col border-r border-slate-200 bg-white">
       <div className="border-b border-slate-200 px-5 py-4">
-        <p className="text-lg font-bold text-teal-700">DOKTA</p>
+        <p className="text-lg font-bold text-teal-700">DOKTIS</p>
         <p className="text-xs text-slate-500">Espace patient</p>
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">

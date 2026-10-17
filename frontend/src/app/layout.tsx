@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DOKTA — Gestion de cabinets dentaires et médicaux",
+  title: "DOKTIS — Gestion de cabinets dentaires et médicaux",
   description: "Micro SaaS de gestion de cabinets dentaires et médicaux : patients, rendez-vous, consultations, facturation.",
 };
 

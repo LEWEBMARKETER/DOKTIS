@@ -44,7 +44,7 @@ export default function DirectoryPage() {
       <div className="mb-8 text-center">
         <h1 className="text-2xl font-bold text-slate-900">Trouvez un cabinet médical ou dentaire</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Recherchez parmi les cabinets partenaires DOKTA et prenez rendez-vous en ligne.
+          Recherchez parmi les cabinets partenaires DOKTIS et prenez rendez-vous en ligne.
         </p>
       </div>
 

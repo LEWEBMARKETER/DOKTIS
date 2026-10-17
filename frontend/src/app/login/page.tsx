@@ -30,7 +30,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
       <Card className="w-full max-w-sm">
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-teal-700">DOKTA</h1>
+          <h1 className="text-2xl font-bold text-teal-700">DOKTIS</h1>
           <p className="text-sm text-slate-500">Connectez-vous à votre cabinet</p>
         </div>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">

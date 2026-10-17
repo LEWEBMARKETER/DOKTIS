@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Enums\RoleUtilisateur;
 use App\Http\Controllers\Controller;
 use App\Models\Cabinet;
+use App\Models\JournalAction;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,7 +16,9 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     /**
-     * Crée un nouveau cabinet (tenant) avec son compte administrateur.
+     * Crée un nouveau cabinet (tenant) avec son compte administrateur et
+     * ouvre directement sa session (cookie HttpOnly via Sanctum SPA, garde
+     * "web" — distinct du garde "patient" utilisé par DOKTIS Patient).
      */
     public function registerCabinet(Request $request)
     {
@@ -45,12 +48,14 @@ class AuthController extends Controller
             'role' => RoleUtilisateur::Administrateur,
         ]);
 
-        $token = $admin->createToken('dokta')->plainTextToken;
+        Auth::guard('web')->login($admin);
+        $request->session()->regenerate();
+
+        JournalAction::enregistrer('cabinet.cree', Cabinet::class, $cabinet->id, acteur: $admin);
 
         return response()->json([
             'cabinet' => $cabinet,
             'user' => $admin,
-            'token' => $token,
         ], 201);
     }
 
@@ -64,22 +69,38 @@ class AuthController extends Controller
         $user = User::where('email', $credentials['email'])->first();
 
         if (! $user || ! Hash::check($credentials['password'], $user->password) || ! $user->actif) {
+            JournalAction::enregistrer('auth.echec', User::class, $user?->id, ['email' => $credentials['email']]);
+
             throw ValidationException::withMessages([
                 'email' => ['Identifiants invalides.'],
             ]);
         }
 
-        $token = $user->createToken('dokta')->plainTextToken;
+        // Régénère l'identifiant de session APRÈS validation des identifiants
+        // pour prévenir toute fixation de session.
+        Auth::guard('web')->login($user);
+        $request->session()->regenerate();
+
+        JournalAction::enregistrer('auth.connexion', User::class, $user->id, acteur: $user);
 
         return response()->json([
             'user' => $user->load('cabinet'),
-            'token' => $token,
         ]);
     }
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $user = Auth::guard('web')->user();
+
+        Auth::guard('web')->logout();
+        // Ne régénère que le jeton CSRF (pas d'invalidation globale de la
+        // session) afin de ne pas déconnecter une éventuelle session
+        // DOKTIS Patient active dans le même navigateur.
+        $request->session()->regenerateToken();
+
+        if ($user) {
+            JournalAction::enregistrer('auth.deconnexion', User::class, $user->id, acteur: $user);
+        }
 
         return response()->json(['message' => 'Déconnecté.']);
     }

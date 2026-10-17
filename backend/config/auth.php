@@ -40,6 +40,15 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // Garde dédiée aux comptes DOKTIS Patient : session distincte du
+        // personnel de cabinet (modèle Authenticatable différent), afin que
+        // les deux applications restent strictement cloisonnées même si
+        // Sanctum les authentifie toutes deux via cookie de session.
+        'patient' => [
+            'driver' => 'session',
+            'provider' => 'patient_accounts',
+        ],
     ],
 
     /*
@@ -63,6 +72,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', App\Models\User::class),
+        ],
+
+        'patient_accounts' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\PatientAccount::class,
         ],
 
         // 'users' => [

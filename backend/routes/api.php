@@ -41,8 +41,10 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-Route::post('/auth/register-cabinet', [AuthController::class, 'registerCabinet']);
-Route::post('/auth/login', [AuthController::class, 'login']);
+Route::middleware('throttle:auth')->group(function () {
+    Route::post('/auth/register-cabinet', [AuthController::class, 'registerCabinet']);
+    Route::post('/auth/login', [AuthController::class, 'login']);
+});
 
 Route::middleware(['auth:sanctum', 'staff'])->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
@@ -135,8 +137,10 @@ Route::middleware(['auth:sanctum', 'staff'])->group(function () {
 */
 
 Route::prefix('patient')->group(function () {
-    Route::post('/auth/register', [PatientAuthController::class, 'register']);
-    Route::post('/auth/login', [PatientAuthController::class, 'login']);
+    Route::middleware('throttle:auth')->group(function () {
+        Route::post('/auth/register', [PatientAuthController::class, 'register']);
+        Route::post('/auth/login', [PatientAuthController::class, 'login']);
+    });
 
     Route::middleware(['auth:sanctum', 'patient.account'])->group(function () {
         Route::post('/auth/logout', [PatientAuthController::class, 'logout']);

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api\Patient;
 
 use App\Http\Controllers\Controller;
+use App\Models\JournalAction;
 use App\Models\PatientAccount;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -27,9 +29,12 @@ class AuthController extends Controller
             'password' => Hash::make($data['password']),
         ]);
 
-        $token = $account->createToken('dokta-patient')->plainTextToken;
+        Auth::guard('patient')->login($account);
+        $request->session()->regenerate();
 
-        return response()->json(['account' => $account, 'token' => $token], 201);
+        JournalAction::enregistrer('patient.inscription', PatientAccount::class, $account->id, acteur: $account);
+
+        return response()->json(['account' => $account], 201);
     }
 
     public function login(Request $request)
@@ -44,19 +49,36 @@ class AuthController extends Controller
             ->first();
 
         if (! $account || ! Hash::check($credentials['password'], $account->password) || ! $account->actif) {
+            JournalAction::enregistrer('patient.auth_echec', PatientAccount::class, $account?->id);
+
             throw ValidationException::withMessages([
                 'identifiant' => ['Identifiants invalides.'],
             ]);
         }
 
-        $token = $account->createToken('dokta-patient')->plainTextToken;
+        // Régénère l'identifiant de session APRÈS validation des identifiants
+        // pour prévenir toute fixation de session.
+        Auth::guard('patient')->login($account);
+        $request->session()->regenerate();
 
-        return response()->json(['account' => $account, 'token' => $token]);
+        JournalAction::enregistrer('patient.connexion', PatientAccount::class, $account->id, acteur: $account);
+
+        return response()->json(['account' => $account]);
     }
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $account = Auth::guard('patient')->user();
+
+        Auth::guard('patient')->logout();
+        // Ne régénère que le jeton CSRF (pas d'invalidation globale de la
+        // session) afin de ne pas déconnecter une éventuelle session
+        // DOKTIS Office active dans le même navigateur.
+        $request->session()->regenerateToken();
+
+        if ($account) {
+            JournalAction::enregistrer('patient.deconnexion', PatientAccount::class, $account->id, acteur: $account);
+        }
 
         return response()->json(['message' => 'Déconnecté.']);
     }

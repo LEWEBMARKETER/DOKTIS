@@ -11,8 +11,8 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    // DOKTA Office et DOKTA Patient s'authentifient par jeton Sanctum (pas de
-    // session web), donc l'auth des canaux privés doit utiliser ce garde.
+    // DOKTIS Office et DOKTIS Patient s'authentifient via cookie de session
+    // Sanctum (SPA stateful), donc l'auth des canaux privés utilise ce garde.
     ->withBroadcasting(
         __DIR__.'/../routes/channels.php',
         ['middleware' => ['auth:sanctum']],
@@ -23,6 +23,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'staff' => \App\Http\Middleware\EnsureStaffUser::class,
             'patient.account' => \App\Http\Middleware\EnsurePatientAccount::class,
         ]);
+
+        // Authentifie les requêtes de nos SPA (Office, Patient, Directory)
+        // par cookie de session HttpOnly plutôt que par jeton Bearer exposé
+        // au JavaScript : ajoute EnsureFrontendRequestsAreStateful (cookies
+        // chiffrés + session + CSRF) devant le groupe "api" pour les
+        // domaines listés dans SANCTUM_STATEFUL_DOMAINS.
+        $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->shouldRenderJsonWhen(function ($request, Throwable $e) {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\RoleUtilisateur;
 use App\Http\Controllers\Controller;
+use App\Models\JournalAction;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -36,6 +37,8 @@ class UserController extends Controller
             'password' => Hash::make($data['password']),
         ]);
 
+        JournalAction::enregistrer('utilisateur.cree', User::class, $user->id, ['role' => $user->role->value]);
+
         return response()->json($user, 201);
     }
 
@@ -51,7 +54,15 @@ class UserController extends Controller
             'actif' => ['sometimes', 'boolean'],
         ]);
 
+        $ancienRole = $user->role->value;
         $user->update($data);
+
+        if (isset($data['role']) && $ancienRole !== $user->role->value) {
+            JournalAction::enregistrer('utilisateur.permissions_modifiees', User::class, $user->id, [
+                'ancien_role' => $ancienRole,
+                'nouveau_role' => $user->role->value,
+            ]);
+        }
 
         return response()->json($user);
     }
@@ -60,6 +71,8 @@ class UserController extends Controller
     {
         abort_if($user->cabinet_id !== $request->user()->cabinet_id, 404);
         abort_if($user->id === $request->user()->id, 422, 'Vous ne pouvez pas vous supprimer vous-même.');
+
+        JournalAction::enregistrer('utilisateur.supprime', User::class, $user->id);
 
         $user->delete();
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\JournalAction;
 use App\Models\Patient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -54,6 +55,8 @@ class PatientController extends Controller
 
     public function show(Patient $patient)
     {
+        JournalAction::enregistrer('dossier.consulte', Patient::class, $patient->id);
+
         return $patient->load(['rendezVous' => fn ($q) => $q->latest('debut')->limit(5), 'consultations' => fn ($q) => $q->latest('date_consultation')->limit(5)]);
     }
 
@@ -77,6 +80,8 @@ class PatientController extends Controller
 
         $patient->update($data);
 
+        JournalAction::enregistrer('dossier.modifie', Patient::class, $patient->id);
+
         return response()->json($patient);
     }
 
@@ -84,6 +89,8 @@ class PatientController extends Controller
     {
         $patient->update(['actif' => false]);
         $patient->delete();
+
+        JournalAction::enregistrer('dossier.desactive', Patient::class, $patient->id);
 
         return response()->json(status: 204);
     }

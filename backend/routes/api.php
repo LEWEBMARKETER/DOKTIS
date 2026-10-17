@@ -64,6 +64,7 @@ Route::middleware(['auth:sanctum', 'staff'])->group(function () {
     Route::patch('plans-traitement/{planTraitement}/etapes/{etape}', [PlanTraitementController::class, 'majEtape']);
 
     Route::apiResource('documents', DocumentController::class)->only(['index', 'store', 'destroy']);
+    Route::get('documents/{document}/telecharger', [DocumentController::class, 'telecharger']);
 
     Route::apiResource('ordonnance-modeles', OrdonnanceModeleController::class)->except('show')->parameters(['ordonnance-modeles' => 'ordonnanceModele']);
     Route::apiResource('ordonnances', OrdonnanceController::class)->only(['index', 'store', 'show', 'destroy']);
@@ -158,6 +159,7 @@ Route::prefix('patient')->group(function () {
         Route::get('/mes-dossiers', [PatientDossierController::class, 'index']);
         Route::get('/mes-ordonnances', [PatientDossierController::class, 'ordonnances']);
         Route::get('/mes-documents', [PatientDossierController::class, 'documents']);
+        Route::get('/documents/{document}/telecharger', [PatientDossierController::class, 'telechargerDocument']);
         Route::get('/mes-factures', [PatientDossierController::class, 'factures']);
         Route::get('/mes-plans-traitement', [PatientDossierController::class, 'plansTraitement']);
 

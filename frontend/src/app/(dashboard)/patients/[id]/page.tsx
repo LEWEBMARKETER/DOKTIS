@@ -17,7 +17,7 @@ interface DocumentItem {
   id: number;
   type: string;
   titre: string | null;
-  url: string;
+  download_url: string;
   created_at: string;
 }
 
@@ -171,7 +171,7 @@ export default function PatientDetailPage() {
               {documents.map((doc) => (
                 <a
                   key={doc.id}
-                  href={doc.url}
+                  href={doc.download_url}
                   target="_blank"
                   rel="noreferrer"
                   className="flex flex-col items-center gap-1 rounded-lg border border-slate-100 p-2 text-center text-xs text-slate-500 hover:border-teal-300"

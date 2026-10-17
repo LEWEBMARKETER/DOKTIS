@@ -86,7 +86,7 @@ export default function DossierMedicalPage() {
                   {d.patient.cabinet.nom} · {formatDate(d.created_at)} · {d.type}
                 </p>
               </div>
-              <a href={d.url} target="_blank" rel="noreferrer" className="text-sm font-medium text-teal-700 hover:underline">
+              <a href={d.download_url} target="_blank" rel="noreferrer" className="text-sm font-medium text-teal-700 hover:underline">
                 Ouvrir
               </a>
             </Card>

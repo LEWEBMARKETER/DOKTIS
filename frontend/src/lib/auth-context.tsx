@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, getToken, setToken } from '@/lib/api';
+import { api } from '@/lib/api';
 import type { User } from '@/types';
 
 interface AuthContextValue {
@@ -21,12 +21,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   const refresh = useCallback(async () => {
-    if (!getToken()) {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
-
+    // L'identité est portée par le cookie de session HttpOnly (plus de
+    // jeton côté client) : on ne peut savoir si une session est active
+    // qu'en interrogeant l'API.
     try {
       const me = await api.get<User>('/auth/me');
       setUser(me);
@@ -38,13 +35,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // Migration contrôlée : purge les anciens jetons Bearer (ancienne
+    // authentification localStorage) sans jamais les transmettre nulle part.
+    try {
+      window.localStorage.removeItem('dokta_token');
+    } catch {
+      // ignore (stockage indisponible)
+    }
     refresh();
   }, [refresh]);
 
   const login = useCallback(
     async (email: string, password: string) => {
-      const res = await api.post<{ user: User; token: string }>('/auth/login', { email, password });
-      setToken(res.token);
+      const res = await api.post<{ user: User }>('/auth/login', { email, password });
       setUser(res.user);
       router.push('/');
     },
@@ -57,7 +60,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // ignore
     }
-    setToken(null);
     setUser(null);
     router.push('/login');
   }, [router]);

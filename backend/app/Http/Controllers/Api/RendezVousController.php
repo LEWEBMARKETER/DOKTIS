@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Events\RendezVousMisAJour;
+use App\Http\Controllers\Api\Concerns\PrevientChevauchementRendezVous;
 use App\Http\Controllers\Controller;
+use App\Models\JournalAction;
 use App\Models\RendezVous;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class RendezVousController extends Controller
 {
+    use PrevientChevauchementRendezVous;
+
     public function index(Request $request)
     {
         $query = RendezVous::query()->with(['patient', 'praticien']);
@@ -45,6 +48,10 @@ class RendezVousController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
+        // Vérification préalable : donne un message clair dans le cas
+        // courant (non concurrent). La protection réelle contre le
+        // double-booking est la contrainte EXCLUDE PostgreSQL, appliquée
+        // par creerSansChevauchement() au moment de l'écriture.
         $conflit = RendezVous::where('praticien_id', $data['praticien_id'])
             ->where('statut', '!=', 'annule')
             ->where('debut', '<', $data['fin'])
@@ -57,10 +64,14 @@ class RendezVousController extends Controller
             ], 422);
         }
 
-        $rendezVous = RendezVous::create([
-            ...$data,
-            'created_by' => $request->user()->id,
-        ]);
+        $rendezVous = $this->creerSansChevauchement(function () use ($data, $request) {
+            return RendezVous::create([
+                ...$data,
+                'created_by' => $request->user()->id,
+            ]);
+        });
+
+        JournalAction::enregistrer('rendez_vous.cree', RendezVous::class, $rendezVous->id, ['patient_id' => $rendezVous->patient_id]);
 
         broadcast(new RendezVousMisAJour($rendezVous));
 
@@ -87,6 +98,10 @@ class RendezVousController extends Controller
 
         $rendezVous->update($data);
 
+        if (($data['statut'] ?? null) === 'annule') {
+            JournalAction::enregistrer('rendez_vous.annule', RendezVous::class, $rendezVous->id, ['patient_id' => $rendezVous->patient_id]);
+        }
+
         broadcast(new RendezVousMisAJour($rendezVous));
 
         return response()->json($rendezVous->load(['patient', 'praticien']));
@@ -94,6 +109,8 @@ class RendezVousController extends Controller
 
     public function destroy(RendezVous $rendezVous)
     {
+        JournalAction::enregistrer('rendez_vous.supprime', RendezVous::class, $rendezVous->id, ['patient_id' => $rendezVous->patient_id]);
+
         $rendezVous->delete();
 
         return response()->json(status: 204);
@@ -121,7 +138,7 @@ class RendezVousController extends Controller
             return response()->json(['message' => 'Ce créneau chevauche un autre rendez-vous du praticien.'], 422);
         }
 
-        $nouveau = DB::transaction(function () use ($rendezVous, $data, $request) {
+        $nouveau = $this->creerSansChevauchement(function () use ($rendezVous, $data, $request) {
             $rendezVous->update(['statut' => 'reprogramme']);
 
             return RendezVous::create([
@@ -138,6 +155,8 @@ class RendezVousController extends Controller
                 'created_by' => $request->user()->id,
             ]);
         });
+
+        JournalAction::enregistrer('rendez_vous.reprogramme', RendezVous::class, $nouveau->id, ['depuis' => $rendezVous->id]);
 
         broadcast(new RendezVousMisAJour($nouveau));
 

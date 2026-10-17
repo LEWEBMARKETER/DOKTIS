@@ -6,7 +6,7 @@ export default function DirectoryLayout({ children }: { children: React.ReactNod
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
           <Link href="/directory" className="text-lg font-bold text-teal-700">
-            DOKTA <span className="font-normal text-slate-400">Directory</span>
+            DOKTIS <span className="font-normal text-slate-400">Directory</span>
           </Link>
           <div className="flex items-center gap-4 text-sm font-medium">
             <Link href="/patient" className="text-slate-600 hover:text-teal-700">

@@ -12,7 +12,7 @@ const NAV = [
   { href: '/facturation', label: 'Facturation', icon: '💳', roles: ['administrateur', 'secretaire'] },
   { href: '/statistiques', label: 'Statistiques', icon: '📈', roles: ['administrateur'] },
   { href: '/administration', label: 'Équipe du cabinet', icon: '⚙️', roles: ['administrateur'] },
-  { href: '/cabinets', label: 'Cabinets DOKTA', icon: '🏥', roles: ['super_admin'] },
+  { href: '/cabinets', label: 'Cabinets DOKTIS', icon: '🏥', roles: ['super_admin'] },
 ];
 
 export function Sidebar() {
@@ -24,7 +24,7 @@ export function Sidebar() {
   return (
     <aside className="flex h-screen w-64 flex-col border-r border-slate-200 bg-white">
       <div className="border-b border-slate-200 px-5 py-4">
-        <p className="text-lg font-bold text-teal-700">DOKTA</p>
+        <p className="text-lg font-bold text-teal-700">DOKTIS</p>
         {user?.cabinet && <p className="truncate text-xs text-slate-500">{user.cabinet.nom}</p>}
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">

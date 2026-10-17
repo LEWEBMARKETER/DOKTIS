@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Api\Patient;
 use App\Http\Controllers\Controller;
 use App\Models\Document;
 use App\Models\Facture;
+use App\Models\JournalAction;
 use App\Models\Ordonnance;
 use App\Models\Patient;
 use App\Models\PlanTraitement;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Vue en lecture seule, pour un patient authentifié, de ses dossiers médicaux
@@ -47,7 +50,26 @@ class DossierController extends Controller
             ->with(['patient' => $this->patientAvecCabinet()])
             ->latest()
             ->get()
-            ->map(fn (Document $document) => [...$document->toArray(), 'url' => $document->url()]);
+            ->map(fn (Document $document) => [
+                ...$document->toArray(),
+                'download_url' => $document->cheminTelechargement('/api/patient/documents'),
+            ]);
+    }
+
+    /**
+     * Diffuse le fichier (jamais une URL de stockage directe) après avoir
+     * vérifié que le document appartient bien à l'un des dossiers du
+     * patient authentifié — et à aucun autre.
+     */
+    public function telechargerDocument(Request $request, int $document): StreamedResponse
+    {
+        $doc = Document::withoutGlobalScopes()
+            ->whereIn('patient_id', $this->dossierIds($request))
+            ->findOrFail($document);
+
+        JournalAction::enregistrer('patient.document_telecharge', Document::class, $doc->id, acteur: $request->user());
+
+        return Storage::disk($doc->disque)->response($doc->chemin, $doc->nom_fichier);
     }
 
     public function factures(Request $request)

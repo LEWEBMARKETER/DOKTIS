@@ -29,6 +29,11 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => false,
+    // Requis pour l'authentification par cookie de session Sanctum (SPA
+    // stateful) : le navigateur doit pouvoir envoyer/recevoir le cookie de
+    // session et le cookie XSRF-TOKEN sur les requêtes vers l'API.
+    // "allowed_origins" doit rester une liste explicite (jamais "*") tant
+    // que ce réglage est actif.
+    'supports_credentials' => true,
 
 ];

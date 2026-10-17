@@ -89,7 +89,7 @@ export default function PatientDashboardPage() {
           <Card className="transition-shadow hover:shadow-md">
             <p className="text-2xl">🔍</p>
             <p className="mt-2 font-medium text-slate-900">Trouver un cabinet</p>
-            <p className="text-sm text-slate-500">Parcourir l&apos;annuaire DOKTA</p>
+            <p className="text-sm text-slate-500">Parcourir l&apos;annuaire DOKTIS</p>
           </Card>
         </Link>
       </div>

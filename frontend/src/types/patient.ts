@@ -64,7 +64,7 @@ export interface PatientDocument {
   titre: string;
   nom_fichier: string;
   mime_type: string | null;
-  url: string;
+  download_url: string;
   created_at: string;
   patient: PatientRef;
 }

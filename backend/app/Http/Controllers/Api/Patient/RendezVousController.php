@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api\Patient;
 
 use App\Enums\RoleUtilisateur;
 use App\Events\RendezVousMisAJour;
+use App\Http\Controllers\Api\Concerns\PrevientChevauchementRendezVous;
 use App\Http\Controllers\Controller;
 use App\Models\Cabinet;
+use App\Models\JournalAction;
 use App\Models\Patient;
 use App\Models\RendezVous;
 use App\Models\User;
@@ -14,6 +16,9 @@ use Illuminate\Support\Str;
 
 class RendezVousController extends Controller
 {
+    use PrevientChevauchementRendezVous;
+
+
     /**
      * Tous les rendez-vous du patient, tous cabinets confondus.
      */
@@ -75,17 +80,21 @@ class RendezVousController extends Controller
             ]
         );
 
-        $rendezVous = RendezVous::withoutGlobalScopes()->create([
-            'cabinet_id' => $cabinet->id,
-            'patient_id' => $dossier->id,
-            'praticien_id' => $praticien->id,
-            'motif' => $data['motif'] ?? null,
-            'type' => 'consultation',
-            'source' => 'patient_app',
-            'debut' => $data['debut'],
-            'fin' => $data['fin'],
-            'statut' => 'planifie',
-        ]);
+        $rendezVous = $this->creerSansChevauchement(function () use ($cabinet, $dossier, $praticien, $data) {
+            return RendezVous::withoutGlobalScopes()->create([
+                'cabinet_id' => $cabinet->id,
+                'patient_id' => $dossier->id,
+                'praticien_id' => $praticien->id,
+                'motif' => $data['motif'] ?? null,
+                'type' => 'consultation',
+                'source' => 'patient_app',
+                'debut' => $data['debut'],
+                'fin' => $data['fin'],
+                'statut' => 'planifie',
+            ]);
+        });
+
+        JournalAction::enregistrer('patient.rendez_vous_cree', RendezVous::class, $rendezVous->id, acteur: $account);
 
         broadcast(new RendezVousMisAJour($rendezVous));
 
@@ -108,6 +117,8 @@ class RendezVousController extends Controller
         abort_if(in_array($rendezVous->statut, ['annule', 'termine']), 422, 'Ce rendez-vous ne peut plus être annulé.');
 
         $rendezVous->update(['statut' => 'annule']);
+
+        JournalAction::enregistrer('patient.rendez_vous_annule', RendezVous::class, $rendezVous->id, acteur: $request->user());
 
         broadcast(new RendezVousMisAJour($rendezVous));
 

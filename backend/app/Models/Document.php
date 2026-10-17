@@ -6,7 +6,6 @@ use App\Models\Concerns\BelongsToCabinet;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Storage;
 
 class Document extends Model
 {
@@ -32,8 +31,14 @@ class Document extends Model
         return $this->belongsTo(User::class, 'uploaded_by');
     }
 
-    public function url(): ?string
+    /**
+     * Chemin d'API authentifié et autorisé à utiliser pour télécharger ce
+     * document — jamais une URL de stockage directe (locale ou S3), qui
+     * contournerait tout contrôle d'accès. Le fichier est systématiquement
+     * diffusé (streamé) par le contrôleur après vérification des droits.
+     */
+    public function cheminTelechargement(string $prefixe = '/api/documents'): string
     {
-        return Storage::disk($this->disque)->url($this->chemin);
+        return "{$prefixe}/{$this->id}/telecharger";
     }
 }

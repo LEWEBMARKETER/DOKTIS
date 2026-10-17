@@ -37,7 +37,11 @@ return [
     |
     */
 
-    'guard' => ['web'],
+    // Essaie le garde "web" (personnel de cabinet) puis "patient" (compte
+    // DOKTIS Patient) pour authentifier les requêtes SPA par cookie. Les
+    // middlewares "staff" / "patient.account" vérifient ensuite le type de
+    // compte réellement résolu pour cloisonner les deux applications.
+    'guard' => ['web', 'patient'],
 
     /*
     |--------------------------------------------------------------------------

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Facture;
+use App\Models\JournalAction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -62,6 +63,8 @@ class FactureController extends Controller
             return $facture;
         });
 
+        JournalAction::enregistrer('facture.creee', Facture::class, $facture->id, ['patient_id' => $facture->patient_id]);
+
         return response()->json($facture->load('lignes'), 201);
     }
 
@@ -80,11 +83,15 @@ class FactureController extends Controller
 
         $facture->update($data);
 
+        JournalAction::enregistrer('facture.modifiee', Facture::class, $facture->id, ['statut' => $facture->statut]);
+
         return response()->json($facture);
     }
 
     public function destroy(Facture $facture)
     {
+        JournalAction::enregistrer('facture.supprimee', Facture::class, $facture->id);
+
         $facture->delete();
 
         return response()->json(status: 204);

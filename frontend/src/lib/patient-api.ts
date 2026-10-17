@@ -1,43 +1,35 @@
 import { ApiError } from '@/lib/api';
+import { csrfHeader, ensureCsrfCookie } from '@/lib/csrf';
 
 export { ApiError };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api';
+// Toujours une URL relative : voir lib/api.ts pour le détail (proxy Next.js
+// same-origin, requis pour le cookie de session HttpOnly Sanctum).
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api';
 
-const TOKEN_KEY = 'dokta_patient_token';
+const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
-export function getPatientToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return window.localStorage.getItem(TOKEN_KEY);
-}
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const { headers, ...rest } = options;
+  const method = (rest.method ?? 'GET').toUpperCase();
+  const isMutating = MUTATING_METHODS.has(method);
 
-export function setPatientToken(token: string | null): void {
-  if (typeof window === 'undefined') return;
-  if (token) {
-    window.localStorage.setItem(TOKEN_KEY, token);
-  } else {
-    window.localStorage.removeItem(TOKEN_KEY);
+  if (isMutating) {
+    await ensureCsrfCookie();
   }
-}
 
-interface RequestOptions extends RequestInit {
-  auth?: boolean;
-}
-
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { auth = true, headers, ...rest } = options;
+  const isFormData = rest.body instanceof FormData;
   const finalHeaders: Record<string, string> = {
     Accept: 'application/json',
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+    ...(isMutating ? csrfHeader() : {}),
     ...(headers as Record<string, string>),
   };
 
-  if (auth) {
-    const token = getPatientToken();
-    if (token) finalHeaders['Authorization'] = `Bearer ${token}`;
-  }
-
-  const response = await fetch(`${API_URL}${path}`, { ...rest, headers: finalHeaders });
+  // "include" : le compte DOKTIS Patient s'authentifie via le même cookie
+  // de session HttpOnly que DOKTIS Office (garde "patient" dédié côté API,
+  // voir backend/config/auth.php) — plus de jeton stocké côté client.
+  const response = await fetch(`${API_URL}${path}`, { ...rest, headers: finalHeaders, credentials: 'include' });
 
   if (response.status === 204) {
     return undefined as T;
@@ -46,9 +38,6 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    if (response.status === 401) {
-      setPatientToken(null);
-    }
     throw new ApiError(data?.message ?? 'Une erreur est survenue.', response.status, data?.errors);
   }
 
@@ -57,7 +46,11 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
 export const patientApi = {
   get: <T>(path: string) => request<T>(path, { method: 'GET' }),
-  post: <T>(path: string, body?: unknown) => request<T>(path, { method: 'POST', body: JSON.stringify(body ?? {}) }),
+  post: <T>(path: string, body?: unknown) =>
+    request<T>(path, {
+      method: 'POST',
+      body: body instanceof FormData ? body : JSON.stringify(body ?? {}),
+    }),
   patch: <T>(path: string, body?: unknown) => request<T>(path, { method: 'PATCH', body: JSON.stringify(body ?? {}) }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 };

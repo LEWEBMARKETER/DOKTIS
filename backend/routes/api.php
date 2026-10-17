@@ -41,8 +41,10 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-Route::post('/auth/register-cabinet', [AuthController::class, 'registerCabinet']);
-Route::post('/auth/login', [AuthController::class, 'login']);
+Route::middleware('throttle:auth')->group(function () {
+    Route::post('/auth/register-cabinet', [AuthController::class, 'registerCabinet']);
+    Route::post('/auth/login', [AuthController::class, 'login']);
+});
 
 Route::middleware(['auth:sanctum', 'staff'])->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
@@ -62,19 +64,22 @@ Route::middleware(['auth:sanctum', 'staff'])->group(function () {
     Route::patch('plans-traitement/{planTraitement}/etapes/{etape}', [PlanTraitementController::class, 'majEtape']);
 
     Route::apiResource('documents', DocumentController::class)->only(['index', 'store', 'destroy']);
+    Route::get('documents/{document}/telecharger', [DocumentController::class, 'telecharger']);
 
     Route::apiResource('ordonnance-modeles', OrdonnanceModeleController::class)->except('show')->parameters(['ordonnance-modeles' => 'ordonnanceModele']);
     Route::apiResource('ordonnances', OrdonnanceController::class)->only(['index', 'store', 'show', 'destroy']);
 
-    Route::apiResource('factures', FactureController::class);
+    // La suppression d'une facture, d'un paiement, d'un devis ou d'une
+    // dépense est réservée aux administrateurs (groupe role:administrateur
+    // plus bas) : ce sont des écritures comptables, pas de simples fiches.
+    Route::apiResource('factures', FactureController::class)->except('destroy');
     Route::get('factures/{facture}/paiements', [PaiementController::class, 'index']);
     Route::post('factures/{facture}/paiements', [PaiementController::class, 'store']);
-    Route::delete('factures/{facture}/paiements/{paiement}', [PaiementController::class, 'destroy']);
 
-    Route::apiResource('devis', DevisController::class)->parameters(['devis' => 'devis']);
+    Route::apiResource('devis', DevisController::class)->parameters(['devis' => 'devis'])->except('destroy');
     Route::post('devis/{devis}/convertir', [DevisController::class, 'convertir']);
 
-    Route::apiResource('depenses', DepenseController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::apiResource('depenses', DepenseController::class)->only(['index', 'store', 'update']);
     Route::get('comptabilite/journal-caisse', [ComptabiliteController::class, 'journal']);
     Route::get('comptabilite/journal-caisse/export', [ComptabiliteController::class, 'exportCsv']);
 
@@ -96,6 +101,11 @@ Route::middleware(['auth:sanctum', 'staff'])->group(function () {
         Route::post('users', [UserController::class, 'store']);
         Route::patch('users/{user}', [UserController::class, 'update']);
         Route::delete('users/{user}', [UserController::class, 'destroy']);
+
+        Route::delete('factures/{facture}', [FactureController::class, 'destroy']);
+        Route::delete('factures/{facture}/paiements/{paiement}', [PaiementController::class, 'destroy']);
+        Route::delete('devis/{devis}', [DevisController::class, 'destroy']);
+        Route::delete('depenses/{depense}', [DepenseController::class, 'destroy']);
 
         Route::get('parametres/cabinet', [ParametresController::class, 'show']);
         Route::patch('parametres/cabinet', [ParametresController::class, 'update']);
@@ -135,8 +145,10 @@ Route::middleware(['auth:sanctum', 'staff'])->group(function () {
 */
 
 Route::prefix('patient')->group(function () {
-    Route::post('/auth/register', [PatientAuthController::class, 'register']);
-    Route::post('/auth/login', [PatientAuthController::class, 'login']);
+    Route::middleware('throttle:auth')->group(function () {
+        Route::post('/auth/register', [PatientAuthController::class, 'register']);
+        Route::post('/auth/login', [PatientAuthController::class, 'login']);
+    });
 
     Route::middleware(['auth:sanctum', 'patient.account'])->group(function () {
         Route::post('/auth/logout', [PatientAuthController::class, 'logout']);
@@ -154,6 +166,7 @@ Route::prefix('patient')->group(function () {
         Route::get('/mes-dossiers', [PatientDossierController::class, 'index']);
         Route::get('/mes-ordonnances', [PatientDossierController::class, 'ordonnances']);
         Route::get('/mes-documents', [PatientDossierController::class, 'documents']);
+        Route::get('/documents/{document}/telecharger', [PatientDossierController::class, 'telechargerDocument']);
         Route::get('/mes-factures', [PatientDossierController::class, 'factures']);
         Route::get('/mes-plans-traitement', [PatientDossierController::class, 'plansTraitement']);
 

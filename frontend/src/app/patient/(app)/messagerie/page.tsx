@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { patientApi } from '@/lib/patient-api';
+import { patientApi, ApiError } from '@/lib/patient-api';
 import { usePatientAuth } from '@/lib/patient-auth-context';
 import { PageHeader } from '@/components/ui';
 import type { PatientConversation, PatientMessage } from '@/types/patient';
@@ -15,6 +15,7 @@ export default function MessageriePage() {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
+  const [erreur, setErreur] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -24,6 +25,7 @@ export default function MessageriePage() {
         setConversations(data);
         if (data.length > 0) setSelectedId(data[0].id);
       })
+      .catch(() => setErreur('Impossible de charger vos conversations.'))
       .finally(() => setLoadingConversations(false));
   }, []);
 
@@ -33,6 +35,7 @@ export default function MessageriePage() {
     patientApi
       .get<{ messages: PatientMessage[] }>(`/patient/conversations/${selectedId}/messages`)
       .then((data) => setMessages(data.messages))
+      .catch(() => setErreur('Impossible de charger les messages.'))
       .finally(() => setLoadingMessages(false));
   }, [selectedId]);
 
@@ -42,7 +45,8 @@ export default function MessageriePage() {
 
   async function envoyer(e: React.FormEvent) {
     e.preventDefault();
-    if (!selectedId || !draft.trim()) return;
+    if (!selectedId || !draft.trim() || sending) return;
+    setErreur(null);
     setSending(true);
     try {
       const message = await patientApi.post<PatientMessage>(`/patient/conversations/${selectedId}/messages`, {
@@ -50,6 +54,8 @@ export default function MessageriePage() {
       });
       setMessages((m) => [...m, message]);
       setDraft('');
+    } catch (err) {
+      setErreur(err instanceof ApiError ? err.message : "Le message n'a pas pu être envoyé, réessayez.");
     } finally {
       setSending(false);
     }
@@ -60,6 +66,10 @@ export default function MessageriePage() {
   return (
     <div>
       <PageHeader title="Messagerie" description="Échangez avec les cabinets où vous avez un dossier." />
+
+      {erreur && (
+        <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{erreur}</div>
+      )}
 
       <div className="flex h-[70vh] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="w-72 shrink-0 overflow-y-auto border-r border-slate-200">

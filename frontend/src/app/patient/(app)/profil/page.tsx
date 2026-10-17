@@ -20,6 +20,8 @@ export default function ProfilPage() {
   const [success, setSuccess] = useState(false);
   const [saving, setSaving] = useState(false);
   const [avis, setAvis] = useState<PatientAvis[]>([]);
+  const [avisError, setAvisError] = useState<string | null>(null);
+  const [supprimantAvisId, setSupprimantAvisId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!account) return;
@@ -34,7 +36,10 @@ export default function ProfilPage() {
   }, [account]);
 
   useEffect(() => {
-    patientApi.get<PatientAvis[]>('/patient/mes-avis').then(setAvis);
+    patientApi
+      .get<PatientAvis[]>('/patient/mes-avis')
+      .then(setAvis)
+      .catch(() => setAvisError('Impossible de charger vos avis.'));
   }, []);
 
   function update<K extends keyof typeof form>(key: K, value: typeof form[K]) {
@@ -58,8 +63,17 @@ export default function ProfilPage() {
   }
 
   async function supprimerAvis(cabinetId: number) {
-    await patientApi.delete(`/patient/cabinets/${cabinetId}/avis`);
-    setAvis((a) => a.filter((item) => item.cabinet_id !== cabinetId));
+    if (supprimantAvisId !== null) return;
+    setAvisError(null);
+    setSupprimantAvisId(cabinetId);
+    try {
+      await patientApi.delete(`/patient/cabinets/${cabinetId}/avis`);
+      setAvis((a) => a.filter((item) => item.cabinet_id !== cabinetId));
+    } catch (err) {
+      setAvisError(err instanceof ApiError ? err.message : "L'avis n'a pas pu être supprimé, réessayez.");
+    } finally {
+      setSupprimantAvisId(null);
+    }
   }
 
   return (
@@ -107,6 +121,7 @@ export default function ProfilPage() {
 
         <Card>
           <h2 className="mb-3 font-semibold text-slate-900">Mes avis</h2>
+          <ErrorText>{avisError}</ErrorText>
           {avis.length === 0 && <p className="text-sm text-slate-400">Vous n&apos;avez laissé aucun avis.</p>}
           <ul className="space-y-3">
             {avis.map((a) => (
@@ -116,8 +131,12 @@ export default function ProfilPage() {
                   <Badge tone="amber">{'★'.repeat(a.note)}</Badge>
                 </div>
                 {a.commentaire && <p className="mt-1 text-sm text-slate-600">{a.commentaire}</p>}
-                <button onClick={() => supprimerAvis(a.cabinet_id)} className="mt-1 text-xs text-red-600 hover:underline">
-                  Supprimer
+                <button
+                  onClick={() => supprimerAvis(a.cabinet_id)}
+                  disabled={supprimantAvisId !== null}
+                  className="mt-1 text-xs text-red-600 hover:underline disabled:text-red-300"
+                >
+                  {supprimantAvisId === a.cabinet_id ? 'Suppression…' : 'Supprimer'}
                 </button>
               </li>
             ))}

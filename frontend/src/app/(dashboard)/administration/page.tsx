@@ -22,6 +22,8 @@ export default function AdministrationPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [busyUserId, setBusyUserId] = useState<number | null>(null);
 
   function load() {
     api.get<User[]>('/users').then(setUsers);
@@ -52,19 +54,39 @@ export default function AdministrationPage() {
   }
 
   async function toggleActif(u: User) {
-    await api.patch(`/users/${u.id}`, { actif: !u.actif });
-    load();
+    if (busyUserId !== null) return;
+    setActionError(null);
+    setBusyUserId(u.id);
+    try {
+      await api.patch(`/users/${u.id}`, { actif: !u.actif });
+      load();
+    } catch (err) {
+      setActionError(err instanceof ApiError ? err.message : "Impossible de modifier le statut de ce membre.");
+    } finally {
+      setBusyUserId(null);
+    }
   }
 
   async function remove(u: User) {
+    if (busyUserId !== null) return;
     if (!confirm(`Supprimer ${u.name} ?`)) return;
-    await api.delete(`/users/${u.id}`);
-    load();
+    setActionError(null);
+    setBusyUserId(u.id);
+    try {
+      await api.delete(`/users/${u.id}`);
+      load();
+    } catch (err) {
+      setActionError(err instanceof ApiError ? err.message : "Impossible de supprimer ce membre.");
+    } finally {
+      setBusyUserId(null);
+    }
   }
 
   return (
     <div>
       <PageHeader title="Équipe du cabinet" description="Gérez les comptes de votre personnel." actions={<Button onClick={() => setModalOpen(true)}>+ Ajouter un membre</Button>} />
+
+      <ErrorText>{actionError}</ErrorText>
 
       <Card className="overflow-x-auto p-0">
         <table className="w-full min-w-[640px] text-left text-sm">
@@ -89,10 +111,10 @@ export default function AdministrationPage() {
                 <td className="px-4 py-3 text-right">
                   {u.id !== currentUser?.id && (
                     <div className="flex justify-end gap-2">
-                      <Button variant="secondary" onClick={() => toggleActif(u)}>
+                      <Button variant="secondary" disabled={busyUserId !== null} onClick={() => toggleActif(u)}>
                         {u.actif ? 'Désactiver' : 'Activer'}
                       </Button>
-                      <Button variant="danger" onClick={() => remove(u)}>Supprimer</Button>
+                      <Button variant="danger" disabled={busyUserId !== null} onClick={() => remove(u)}>Supprimer</Button>
                     </div>
                   )}
                 </td>

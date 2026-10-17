@@ -25,6 +25,8 @@ export default function AgendaPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<number | null>(null);
 
   async function load() {
     const debut = new Date();
@@ -67,13 +69,24 @@ export default function AgendaPage() {
   }
 
   async function updateStatut(rdv: RendezVous, statut: string) {
-    await api.patch(`/rendez-vous/${rdv.id}`, { statut });
-    load();
+    if (updatingId !== null) return;
+    setActionError(null);
+    setUpdatingId(rdv.id);
+    try {
+      await api.patch(`/rendez-vous/${rdv.id}`, { statut });
+      load();
+    } catch (err) {
+      setActionError(err instanceof ApiError ? err.message : 'Impossible de mettre à jour ce rendez-vous.');
+    } finally {
+      setUpdatingId(null);
+    }
   }
 
   return (
     <div>
       <PageHeader title="Agenda" description="Rendez-vous à venir et du jour." actions={<Button onClick={() => setModalOpen(true)}>+ Nouveau rendez-vous</Button>} />
+
+      <ErrorText>{actionError}</ErrorText>
 
       <div className="space-y-3">
         {rendezVous.length === 0 && <p className="text-sm text-slate-400">Aucun rendez-vous à venir.</p>}
@@ -95,8 +108,8 @@ export default function AgendaPage() {
                 <Badge tone={statut.tone}>{statut.label}</Badge>
                 {rdv.statut === 'planifie' && (
                   <>
-                    <Button variant="secondary" onClick={() => updateStatut(rdv, 'confirme')}>Confirmer</Button>
-                    <Button variant="danger" onClick={() => updateStatut(rdv, 'annule')}>Annuler</Button>
+                    <Button variant="secondary" disabled={updatingId !== null} onClick={() => updateStatut(rdv, 'confirme')}>Confirmer</Button>
+                    <Button variant="danger" disabled={updatingId !== null} onClick={() => updateStatut(rdv, 'annule')}>Annuler</Button>
                   </>
                 )}
               </div>

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { api, ApiError, setToken } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { Button, Card, ErrorText, Field, Input, Select } from '@/components/ui';
 import type { Cabinet, User } from '@/types';
@@ -31,8 +31,7 @@ export default function RegisterPage() {
     setError(null);
     setLoading(true);
     try {
-      const res = await api.post<{ cabinet: Cabinet; user: User; token: string }>('/auth/register-cabinet', form);
-      setToken(res.token);
+      await api.post<{ cabinet: Cabinet; user: User }>('/auth/register-cabinet', form);
       await refresh();
       router.push('/');
     } catch (err) {

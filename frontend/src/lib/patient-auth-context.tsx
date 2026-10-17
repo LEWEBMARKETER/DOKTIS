@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { patientApi, getPatientToken, setPatientToken } from '@/lib/patient-api';
+import { patientApi } from '@/lib/patient-api';
 import type { PatientAccountType } from '@/types/patient';
 
 interface RegisterPayload {
@@ -32,12 +32,9 @@ export function PatientAuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   const refresh = useCallback(async () => {
-    if (!getPatientToken()) {
-      setAccount(null);
-      setLoading(false);
-      return;
-    }
-
+    // L'identité est portée par le cookie de session HttpOnly (garde
+    // "patient", distinct du garde "web" de DOKTIS Office) : on ne peut
+    // savoir si une session est active qu'en interrogeant l'API.
     try {
       const me = await patientApi.get<PatientAccountType>('/patient/auth/me');
       setAccount(me);
@@ -49,16 +46,22 @@ export function PatientAuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // Migration contrôlée : purge l'ancien jeton Bearer patient (ancienne
+    // authentification localStorage) sans jamais le transmettre nulle part.
+    try {
+      window.localStorage.removeItem('dokta_patient_token');
+    } catch {
+      // ignore (stockage indisponible)
+    }
     refresh();
   }, [refresh]);
 
   const login = useCallback(
     async (identifiant: string, password: string) => {
-      const res = await patientApi.post<{ account: PatientAccountType; token: string }>('/patient/auth/login', {
+      const res = await patientApi.post<{ account: PatientAccountType }>('/patient/auth/login', {
         identifiant,
         password,
       });
-      setPatientToken(res.token);
       setAccount(res.account);
       router.push('/patient');
     },
@@ -67,8 +70,7 @@ export function PatientAuthProvider({ children }: { children: ReactNode }) {
 
   const register = useCallback(
     async (data: RegisterPayload) => {
-      const res = await patientApi.post<{ account: PatientAccountType; token: string }>('/patient/auth/register', data);
-      setPatientToken(res.token);
+      const res = await patientApi.post<{ account: PatientAccountType }>('/patient/auth/register', data);
       setAccount(res.account);
       router.push('/patient');
     },
@@ -81,7 +83,6 @@ export function PatientAuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // ignore
     }
-    setPatientToken(null);
     setAccount(null);
     router.push('/patient/login');
   }, [router]);

@@ -1,0 +1,3 @@
+worker: php artisan queue:work --tries=3 --backoff=5 --sleep=3
+reverb: php artisan reverb:start --host=0.0.0.0 --port=$PORT
+scheduler: php artisan schedule:work

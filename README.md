@@ -93,6 +93,51 @@ php artisan test
 
 Le fichier `routes/api.php` regroupe l'ensemble des routes par module.
 
+## Déploiement en production (Railway + Vercel + Supabase)
+
+Architecture cible : **Vercel** pour le frontend Next.js, **Railway** pour l'API Laravel (+ un service Reverb + un service queue worker), **Supabase** pour la base PostgreSQL et le stockage des documents.
+
+### 1. Base de données et stockage (Supabase)
+
+Déjà couvert par un projet Supabase créé au préalable. Récupérer :
+- La chaîne de connexion Postgres (bouton **Connect** → onglet **Direct** → **Transaction pooler**, port 6543).
+- Un bucket **Storage** privé + une clé S3-compatible (Storage → bucket → onglet **S3 Connection**).
+
+### 2. API Laravel (Railway)
+
+1. **New Project → Deploy from GitHub repo** → sélectionner `LEWEBMARKETER/DOKTA`, définir le **Root Directory** sur `backend`. Railway détecte Laravel automatiquement (Nixpacks) et sert l'application sans configuration supplémentaire pour le service web principal.
+2. Définir les **variables d'environnement** du service (reprendre `backend/.env.example`, notamment) :
+   - `APP_KEY` (générer avec `php artisan key:generate --show` en local et coller la valeur), `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=<domaine Railway du service>`
+   - `DB_CONNECTION=pgsql`, `DB_HOST`, `DB_PORT=6543`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` (valeurs Supabase)
+   - `DOCUMENTS_DISK=supabase`, `SUPABASE_STORAGE_ENDPOINT` (endpoint S3 du bucket), `SUPABASE_STORAGE_BUCKET`, `SUPABASE_STORAGE_KEY`, `SUPABASE_STORAGE_SECRET`, `SUPABASE_STORAGE_REGION` — le disque `supabase` (voir `config/filesystems.php`) est déjà préconfiguré en S3-compatible path-style, il suffit de renseigner ces variables.
+   - `BROADCAST_CONNECTION=reverb`, `REVERB_APP_ID`, `REVERB_APP_KEY`, `REVERB_APP_SECRET` (générés en local via `php artisan reverb:install` ou choisis manuellement), `REVERB_HOST=<domaine du service reverb, voir étape 4>`, `REVERB_PORT=443`, `REVERB_SCHEME=https`
+   - `QUEUE_CONNECTION=database`, `SANCTUM_STATEFUL_DOMAINS=<domaine Vercel>`, `FRONTEND_URL=<domaine Vercel>`
+3. Dans les réglages de déploiement du service (commande de pré-déploiement / release command), exécuter les migrations à chaque déploiement :
+   ```
+   php artisan migrate --force --isolated
+   ```
+   (`--isolated` évite une double exécution si plusieurs instances démarrent en parallèle.)
+
+### 3. Services Reverb et queue worker (Railway)
+
+Nixpacks ne sait servir que le HTTP entrant : les deux process suivants nécessitent chacun un **service Railway séparé**, pointé sur le **même repo/Root Directory (`backend`)** et les **mêmes variables d'environnement**, en changeant uniquement la commande de démarrage (voir `backend/Procfile` pour référence) :
+
+- **Service `reverb`** — commande de démarrage : `php artisan reverb:start --host=0.0.0.0 --port=$PORT`. Générer un **domaine public** pour ce service spécifique : c'est cette URL/port qu'il faudra renseigner dans `REVERB_HOST` (service API) et côté frontend (`VITE_REVERB_*` / `NEXT_PUBLIC_REVERB_*`).
+- **Service `worker`** — commande de démarrage : `php artisan queue:work --tries=3 --backoff=5 --sleep=3`. Pas de domaine public nécessaire.
+
+### 4. Frontend Next.js (Vercel)
+
+1. Importer le repo sur Vercel, **Root Directory** = `frontend`.
+2. Variable d'environnement : `NEXT_PUBLIC_API_URL=<domaine Railway du service API>/api`.
+   > Le frontend Next.js ne consomme pas encore Reverb (pas de client Laravel Echo intégré à ce stade) : les événements temps réel sont émis côté backend et prêts à être écoutés, mais le branchement côté UI reste à faire dans une itération suivante.
+3. Une fois le domaine Vercel connu, revenir sur Railway et mettre à jour `SANCTUM_STATEFUL_DOMAINS` et `FRONTEND_URL` avec ce domaine (nécessaire pour que Sanctum accepte les requêtes du frontend en cross-domain).
+
+### 5. Vérification post-déploiement
+
+- `GET https://<domaine Railway>/up` doit répondre 200 (healthcheck Laravel).
+- Se connecter avec un compte de démonstration (voir plus haut) depuis le frontend Vercel.
+- Vérifier dans les logs du service `worker` qu'un job de broadcast s'exécute bien après une action (ex. création de rendez-vous).
+
 ## Vision long terme
 
 Interfaces DOKTA Patient et DOKTA Directory, application praticien mobile, téléconsultation, IA d'aide au diagnostic, gestion de stock (voir le cahier des charges).

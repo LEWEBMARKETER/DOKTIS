@@ -1,0 +1,98 @@
+# Blueprint Render pour DOKTIS (backend Laravel + frontend Next.js).
+#
+# ⚠️ Champs à reconfirmer sur render.com/docs/blueprint-spec avant import :
+# cette session n'a pas pu atteindre render.com (politique réseau de
+# l'environnement) pour vérifier en direct la syntaxe exacte de ce fichier.
+# Si l'import du Blueprint échoue, créez les deux services manuellement
+# depuis le tableau de bord Render en suivant DIRECTORY.md § 9 — aucune
+# des deux méthodes ne change l'architecture retenue (voir le doc d'audit).
+#
+# Aucun secret n'est écrit ici : toute valeur marquée "sync: false" se
+# saisit à la main dans le tableau de bord Render après création du service.
+
+services:
+  # ⚠️ "pserv" = Private Service (pas d'URL publique, atteignable seulement
+  # par les autres services Render du même compte) — type non vérifié en
+  # direct (voir avertissement en tête de fichier) mais c'est la primitive
+  # Render qui correspond le mieux à "Laravel jamais exposé publiquement".
+  - type: pserv
+    name: doktis-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: starter
+    healthCheckPath: /up
+    # Exécuté une seule fois par déploiement, jamais à chaque démarrage de
+    # réplique — c'est le bon endroit pour les migrations (cf. plan de
+    # déploiement, DIRECTORY.md § 9).
+    preDeployCommand: php artisan migrate --force
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_KEY
+        sync: false # générer avec `php artisan key:generate --show` et coller ici
+      - key: APP_URL
+        sync: false # URL publique du service API (générée par Render à la création)
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_DATABASE
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: SESSION_DRIVER
+        value: database
+      - key: SESSION_SECURE_COOKIE
+        value: true
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: FILESYSTEM_DISK
+        value: supabase
+      - key: SUPABASE_STORAGE_ENDPOINT
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        sync: false
+      - key: SUPABASE_STORAGE_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_SECRET
+        sync: false
+      - key: SUPABASE_STORAGE_REGION
+        sync: false
+      - key: SANCTUM_STATEFUL_DOMAINS
+        sync: false # domaine public du frontend, ex. doktis.ga (sans schéma)
+      - key: FRONTEND_URL
+        sync: false # ex. https://doktis.ga
+      - key: DOKTIS_DIRECTORY_ENABLED
+        value: true
+      - key: DOKTIS_OFFICE_ENABLED
+        value: false
+      - key: DOKTIS_PATIENT_MEDICAL_ENABLED
+        value: false
+
+  - type: web
+    name: doktis-frontend
+    runtime: node
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    plan: starter
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: /api
+      # ⚠️ Nom de propriété à reconfirmer (ex. "hostport" ou "host") — relie
+      # ce service à l'URL interne du service API ci-dessus sans exposer
+      # Laravel publiquement (cf. architecture recommandée dans l'audit).
+      - key: BACKEND_INTERNAL_URL
+        fromService:
+          type: web
+          name: doktis-api
+          property: hostport

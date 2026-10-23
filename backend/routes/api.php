@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\Admin\DemandeRendezVousController as AdminDemandeRe
 use App\Http\Controllers\Api\Admin\FicheController as AdminFicheController;
 use App\Http\Controllers\Api\Admin\InvitationController as AdminInvitationController;
 use App\Http\Controllers\Api\Admin\ModificationFicheController as AdminModificationFicheController;
+use App\Http\Controllers\Api\Admin\ParametresPlateformeController as AdminParametresPlateformeController;
 use App\Http\Controllers\Api\Admin\PartenaireController as AdminPartenaireController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AvisController;
@@ -191,6 +192,8 @@ Route::middleware(['auth:sanctum', 'staff', 'role:super_admin'])->group(function
 
     Route::get('admin/partenaires', [AdminPartenaireController::class, 'index']);
     Route::patch('admin/partenaires/{partenaire}', [AdminPartenaireController::class, 'update']);
+
+    Route::get('admin/parametres', [AdminParametresPlateformeController::class, 'index']);
 });
 
 /*

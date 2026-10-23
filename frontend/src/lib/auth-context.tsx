@@ -49,20 +49,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (email: string, password: string) => {
       const res = await api.post<{ user: User }>('/auth/login', { email, password });
       setUser(res.user);
-      router.push('/office');
+      // Un seul endpoit de connexion sert le personnel Office, le super
+      // admin ET les partenaires Directory (même garde "web") : la
+      // destination dépend du rôle renvoyé.
+      if (res.user.role === 'super_admin') router.push('/admin/tableau-de-bord');
+      else if (res.user.role === 'partenaire') router.push('/partenaire/tableau-de-bord');
+      else router.push('/office');
     },
     [router],
   );
 
   const logout = useCallback(async () => {
+    const role = user?.role;
     try {
       await api.post('/auth/logout');
     } catch {
       // ignore
     }
     setUser(null);
-    router.push('/office/login');
-  }, [router]);
+    router.push(role === 'partenaire' ? '/partenaire/connexion' : '/office/login');
+  }, [router, user]);
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout, refresh }}>{children}</AuthContext.Provider>

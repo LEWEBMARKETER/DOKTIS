@@ -11,7 +11,11 @@
 # saisit à la main dans le tableau de bord Render après création du service.
 
 services:
-  - type: web
+  # ⚠️ "pserv" = Private Service (pas d'URL publique, atteignable seulement
+  # par les autres services Render du même compte) — type non vérifié en
+  # direct (voir avertissement en tête de fichier) mais c'est la primitive
+  # Render qui correspond le mieux à "Laravel jamais exposé publiquement".
+  - type: pserv
     name: doktis-api
     runtime: docker
     dockerfilePath: ./backend/Dockerfile

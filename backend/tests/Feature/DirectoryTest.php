@@ -13,9 +13,9 @@ class DirectoryTest extends TestCase
 
     public function test_lannuaire_ne_liste_que_les_cabinets_visibles_et_actifs(): void
     {
-        Cabinet::factory()->create(['visible_annuaire' => true, 'actif' => true, 'nom' => 'Cabinet Visible']);
-        Cabinet::factory()->create(['visible_annuaire' => false, 'actif' => true, 'nom' => 'Cabinet Masque']);
-        Cabinet::factory()->create(['visible_annuaire' => true, 'actif' => false, 'nom' => 'Cabinet Inactif']);
+        Cabinet::factory()->create(['statut_publication' => 'publiee', 'actif' => true, 'nom' => 'Cabinet Visible']);
+        Cabinet::factory()->create(['statut_publication' => 'brouillon', 'actif' => true, 'nom' => 'Cabinet Masque']);
+        Cabinet::factory()->create(['statut_publication' => 'publiee', 'actif' => false, 'nom' => 'Cabinet Inactif']);
 
         $response = $this->getJson('/api/directory/cabinets');
 
@@ -31,10 +31,10 @@ class DirectoryTest extends TestCase
         $dentaire = Specialite::create(['nom' => 'Cabinet dentaire', 'slug' => 'cabinet-dentaire']);
         $generaliste = Specialite::create(['nom' => 'Médecin généraliste', 'slug' => 'medecin-generaliste']);
 
-        $cabinetDentaire = Cabinet::factory()->create(['visible_annuaire' => true, 'actif' => true]);
+        $cabinetDentaire = Cabinet::factory()->create(['statut_publication' => 'publiee', 'actif' => true]);
         $cabinetDentaire->specialites()->attach($dentaire);
 
-        $cabinetGeneraliste = Cabinet::factory()->create(['visible_annuaire' => true, 'actif' => true]);
+        $cabinetGeneraliste = Cabinet::factory()->create(['statut_publication' => 'publiee', 'actif' => true]);
         $cabinetGeneraliste->specialites()->attach($generaliste);
 
         $response = $this->getJson('/api/directory/cabinets?specialite=cabinet-dentaire');
@@ -47,7 +47,7 @@ class DirectoryTest extends TestCase
 
     public function test_la_fiche_dun_cabinet_masque_est_introuvable(): void
     {
-        $cabinet = Cabinet::factory()->create(['visible_annuaire' => false]);
+        $cabinet = Cabinet::factory()->create(['statut_publication' => 'brouillon']);
 
         $this->getJson("/api/directory/cabinets/{$cabinet->id}")->assertNotFound();
     }

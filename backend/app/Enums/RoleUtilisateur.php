@@ -9,6 +9,7 @@ enum RoleUtilisateur: string
     case Medecin = 'medecin';
     case Secretaire = 'secretaire';
     case Assistant = 'assistant';
+    case Partenaire = 'partenaire';
 
     public function label(): string
     {
@@ -18,6 +19,7 @@ enum RoleUtilisateur: string
             self::Medecin => 'Médecin / Dentiste',
             self::Secretaire => 'Secrétaire',
             self::Assistant => 'Assistant médical',
+            self::Partenaire => 'Partenaire Directory',
         };
     }
 }

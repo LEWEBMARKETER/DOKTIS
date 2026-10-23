@@ -2,23 +2,28 @@
 
 namespace App\Http\Controllers\Api\Directory;
 
+use App\Enums\CategorieFiche;
 use App\Enums\RoleUtilisateur;
 use App\Http\Controllers\Controller;
 use App\Models\Cabinet;
 use Illuminate\Http\Request;
 
 /**
- * API publique de DOKTA Directory : aucune authentification requise, lecture
- * seule, uniquement les cabinets actifs et visibles dans l'annuaire.
+ * API publique de DOKTIS Directory : aucune authentification requise,
+ * lecture seule, uniquement les fiches actives et publiées (cf.
+ * Cabinet::scopePubliees — statut_publication = "publiee").
  */
 class CabinetController extends Controller
 {
     public function index(Request $request)
     {
         $query = Cabinet::query()
-            ->where('actif', true)
-            ->where('visible_annuaire', true)
+            ->publiees()
             ->with(['specialites', 'mutuelles', 'photos']);
+
+        if ($categorie = $request->query('categorie')) {
+            $query->where('categorie_fiche', $categorie === 'professionnel' ? CategorieFiche::ProfessionnelIndependant->value : $categorie);
+        }
 
         if ($ville = $request->query('ville')) {
             $query->where('ville', 'ilike', "%{$ville}%");
@@ -67,7 +72,7 @@ class CabinetController extends Controller
 
     public function show(Cabinet $cabinet)
     {
-        abort_unless($cabinet->actif && $cabinet->visible_annuaire, 404);
+        abort_unless($cabinet->estPubliee(), 404);
 
         return $cabinet->load([
             'specialites', 'mutuelles', 'photos', 'horaires', 'services',

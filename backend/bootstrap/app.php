@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,
             'staff' => \App\Http\Middleware\EnsureStaffUser::class,
             'patient.account' => \App\Http\Middleware\EnsurePatientAccount::class,
+            'feature' => \App\Http\Middleware\EnsureFeatureEnabled::class,
         ]);
 
         // Authentifie les requêtes de nos SPA (Office, Patient, Directory)

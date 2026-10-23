@@ -6,6 +6,15 @@ vulnérabilité, et les précautions à respecter au déploiement. Il résulte
 d'un audit ciblé suivi de correctifs, menés sur la branche
 `security/audit-hardening` sans réécriture de l'application existante.
 
+> **Repositionnement Directory-first** (branche `feature/directory-first`,
+> au-dessus de `security/audit-hardening`) : tous les mécanismes décrits
+> ici restent inchangés et s'appliquent aussi aux nouveaux espaces
+> `/admin` et `/partenaire`. Les contrôles spécifiques à ce lot (flags de
+> fonctionnalité serveur, invitations partenaire à usage unique, isolation
+> du rôle `partenaire`, collecte de statistiques respectueuse de la vie
+> privée, etc.) sont documentés dans `DIRECTORY.md` § 7, pour ne pas
+> dupliquer ce document.
+
 ## 1. Signaler une vulnérabilité
 
 Toute découverte de faille de sécurité (accès non autorisé à des données,

@@ -8,7 +8,9 @@ Plateforme numérique de gestion des cabinets médicaux et de prise de rendez-vo
 
 Un **Super Admin DOKTIS** transverse gère les cabinets, abonnements, le support et les statistiques nationales.
 
-Ce dépôt contient les fondations backend des trois modules (API Laravel + schéma de données) et l'application front-end de DOKTIS Office (Next.js). Les interfaces DOKTIS Patient et DOKTIS Directory restent à construire sur cette base d'API déjà fonctionnelle.
+Ce dépôt contient les fondations backend des trois modules (API Laravel + schéma de données) et les trois applications front-end (Next.js) : annuaire public, espace partenaire, espace cabinet (DOKTIS Office) et espace patient.
+
+> **Positionnement commercial actuel : Directory-first.** Le premier produit lancé est l'annuaire public (recherche de structures/professionnels, prise de contact, abonnement annuel) sous la marque unique DOKTIS. DOKTIS Office et le dossier médical de DOKTIS Patient restent entièrement fonctionnels dans le code mais sont désactivés par défaut (`DOKTIS_OFFICE_ENABLED=false`) en attendant leur lancement commercial — voir [`DIRECTORY.md`](DIRECTORY.md) pour l'arborescence des routes, les flags de fonctionnalité et la procédure de déploiement.
 
 ## Architecture
 

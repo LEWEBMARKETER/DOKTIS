@@ -25,6 +25,16 @@
         <env name="CACHE_STORE" value="array"/>
         <env name="DB_CONNECTION" value="pgsql"/>
         <env name="DB_DATABASE" value="dokta_test"/>
+        <!-- DOKTIS_OFFICE_ENABLED/DOKTIS_PATIENT_MEDICAL_ENABLED à true par
+             défaut en test : ces modules existent toujours et doivent
+             continuer à fonctionner quand ils sont activés (seule leur
+             exposition par défaut en production a changé pour le
+             repositionnement Directory-first). Les tests qui vérifient
+             spécifiquement le comportement "désactivé" (403) le font en
+             surchargeant config('features.*') localement. -->
+        <env name="DOKTIS_OFFICE_ENABLED" value="true"/>
+        <env name="DOKTIS_PATIENT_MEDICAL_ENABLED" value="true"/>
+        <env name="DOKTIS_DIRECTORY_ENABLED" value="true"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>

@@ -6,7 +6,9 @@ use App\Enums\CategorieFiche;
 use App\Enums\RoleUtilisateur;
 use App\Http\Controllers\Controller;
 use App\Models\Cabinet;
+use App\Services\CollecteStatistiquesFiche;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 /**
  * API publique de DOKTIS Directory : aucune authentification requise,
@@ -61,7 +63,7 @@ class CabinetController extends Controller
             $query->where(function ($q) use ($recherche) {
                 $q->where('nom', 'ilike', "%{$recherche}%")
                     ->orWhereHas('users', function ($uq) use ($recherche) {
-                        $uq->whereIn('role', [RoleUtilisateur::Administrateur->value, RoleUtilisateur::Medecin->value])
+                        $uq->whereIn('role', $this->rolesPraticiensPublics())
                             ->where('name', 'ilike', "%{$recherche}%");
                     });
             });
@@ -78,8 +80,37 @@ class CabinetController extends Controller
             'specialites', 'mutuelles', 'photos', 'horaires', 'services',
             'avis' => fn ($q) => $q->where('statut', 'visible')->with('auteur:id,nom,prenom')->latest(),
             'users' => fn ($q) => $q->select('id', 'cabinet_id', 'name', 'role', 'specialite')
-                ->whereIn('role', [RoleUtilisateur::Administrateur->value, RoleUtilisateur::Medecin->value])
+                ->whereIn('role', $this->rolesPraticiensPublics())
                 ->where('actif', true),
         ]);
+    }
+
+    public function enregistrerVisite(Request $request, Cabinet $cabinet, CollecteStatistiquesFiche $collecte): Response
+    {
+        abort_unless($cabinet->estPubliee(), 404);
+
+        $collecte->enregistrerVisite($cabinet, $request);
+
+        return response()->noContent();
+    }
+
+    public function enregistrerClic(Request $request, Cabinet $cabinet, string $type, CollecteStatistiquesFiche $collecte): Response
+    {
+        abort_unless($cabinet->estPubliee(), 404);
+
+        $collecte->enregistrerClic($cabinet, $type);
+
+        return response()->noContent();
+    }
+
+    /**
+     * Rôles dont le nom est affichable comme praticien sur une fiche
+     * publique : le personnel Office classique, et le partenaire lui-même
+     * pour une fiche "professionnel indépendant" (c'est alors la seule
+     * personne rattachée à la fiche).
+     */
+    private function rolesPraticiensPublics(): array
+    {
+        return [RoleUtilisateur::Administrateur->value, RoleUtilisateur::Medecin->value, RoleUtilisateur::Partenaire->value];
     }
 }

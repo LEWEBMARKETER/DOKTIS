@@ -51,4 +51,27 @@ class DirectoryTest extends TestCase
 
         $this->getJson("/api/directory/cabinets/{$cabinet->id}")->assertNotFound();
     }
+
+    public function test_le_filtre_categorie_distingue_structures_et_professionnels(): void
+    {
+        $structure = Cabinet::factory()->create(['statut_publication' => 'publiee', 'categorie_fiche' => 'structure', 'nom' => 'Clinique A']);
+        $professionnel = Cabinet::factory()->create(['statut_publication' => 'publiee', 'categorie_fiche' => 'professionnel_independant', 'nom' => 'Dr B']);
+
+        $reponseStructures = $this->getJson('/api/directory/cabinets?categorie=structure');
+        $idsStructures = collect($reponseStructures->json('data'))->pluck('id');
+        $this->assertTrue($idsStructures->contains($structure->id));
+        $this->assertFalse($idsStructures->contains($professionnel->id));
+
+        $reponseProfessionnels = $this->getJson('/api/directory/cabinets?categorie=professionnel');
+        $idsProfessionnels = collect($reponseProfessionnels->json('data'))->pluck('id');
+        $this->assertTrue($idsProfessionnels->contains($professionnel->id));
+        $this->assertFalse($idsProfessionnels->contains($structure->id));
+    }
+
+    public function test_une_fiche_est_accessible_par_son_slug(): void
+    {
+        $cabinet = Cabinet::factory()->create(['statut_publication' => 'publiee', 'slug' => 'clinique-test-slug']);
+
+        $this->getJson('/api/directory/fiches/clinique-test-slug')->assertOk()->assertJsonPath('id', $cabinet->id);
+    }
 }

@@ -26,7 +26,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'telephone' => ['nullable', 'string', 'max:50'],
-            'role' => ['required', Rule::enum(RoleUtilisateur::class)->except(RoleUtilisateur::SuperAdmin)],
+            'role' => ['required', Rule::enum(RoleUtilisateur::class)->except([RoleUtilisateur::SuperAdmin, RoleUtilisateur::Partenaire])],
             'specialite' => ['nullable', 'string', 'max:255'],
             'password' => ['required', Password::min(8)],
         ]);
@@ -49,7 +49,7 @@ class UserController extends Controller
         $data = $request->validate([
             'name' => ['sometimes', 'string', 'max:255'],
             'telephone' => ['nullable', 'string', 'max:50'],
-            'role' => ['sometimes', Rule::enum(RoleUtilisateur::class)->except(RoleUtilisateur::SuperAdmin)],
+            'role' => ['sometimes', Rule::enum(RoleUtilisateur::class)->except([RoleUtilisateur::SuperAdmin, RoleUtilisateur::Partenaire])],
             'specialite' => ['nullable', 'string', 'max:255'],
             'actif' => ['sometimes', 'boolean'],
         ]);

@@ -2,6 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\CategorieFiche;
+use App\Enums\StatutPublicationFiche;
+use App\Enums\StatutVerificationFiche;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -16,7 +20,7 @@ class Cabinet extends Model
         'pays', 'logo_path', 'plan', 'essai_expire_at', 'actif',
         'latitude', 'longitude', 'description', 'langues_parlees',
         'accepte_urgences', 'accessible_pmr', 'site_web', 'facebook_url', 'instagram_url',
-        'visible_annuaire',
+        'visible_annuaire', 'categorie_fiche', 'statut_verification', 'statut_publication',
     ];
 
     protected function casts(): array
@@ -31,7 +35,45 @@ class Cabinet extends Model
             'accessible_pmr' => 'boolean',
             'note_moyenne' => 'decimal:2',
             'visible_annuaire' => 'boolean',
+            'categorie_fiche' => CategorieFiche::class,
+            'statut_verification' => StatutVerificationFiche::class,
+            'statut_publication' => StatutPublicationFiche::class,
         ];
+    }
+
+    /**
+     * Source de vérité pour la visibilité publique d'une fiche (remplace
+     * l'usage direct de "visible_annuaire", conservée en lecture pour
+     * compatibilité avec le code existant mais plus mise à jour isolément).
+     */
+    public function scopePubliees(Builder $query): Builder
+    {
+        return $query->where('actif', true)->where('statut_publication', StatutPublicationFiche::Publiee->value);
+    }
+
+    public function estPubliee(): bool
+    {
+        return $this->actif && $this->statut_publication === StatutPublicationFiche::Publiee;
+    }
+
+    public function demandesRendezVous(): HasMany
+    {
+        return $this->hasMany(DemandeRendezVous::class);
+    }
+
+    public function demandesModification(): HasMany
+    {
+        return $this->hasMany(DemandeModificationFiche::class);
+    }
+
+    public function invitationsPartenaire(): HasMany
+    {
+        return $this->hasMany(InvitationPartenaire::class);
+    }
+
+    public function abonnements(): HasMany
+    {
+        return $this->hasMany(Abonnement::class);
     }
 
     public function users(): HasMany

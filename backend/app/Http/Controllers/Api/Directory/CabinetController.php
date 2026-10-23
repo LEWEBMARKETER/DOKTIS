@@ -2,23 +2,30 @@
 
 namespace App\Http\Controllers\Api\Directory;
 
+use App\Enums\CategorieFiche;
 use App\Enums\RoleUtilisateur;
 use App\Http\Controllers\Controller;
 use App\Models\Cabinet;
+use App\Services\CollecteStatistiquesFiche;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 /**
- * API publique de DOKTA Directory : aucune authentification requise, lecture
- * seule, uniquement les cabinets actifs et visibles dans l'annuaire.
+ * API publique de DOKTIS Directory : aucune authentification requise,
+ * lecture seule, uniquement les fiches actives et publiées (cf.
+ * Cabinet::scopePubliees — statut_publication = "publiee").
  */
 class CabinetController extends Controller
 {
     public function index(Request $request)
     {
         $query = Cabinet::query()
-            ->where('actif', true)
-            ->where('visible_annuaire', true)
+            ->publiees()
             ->with(['specialites', 'mutuelles', 'photos']);
+
+        if ($categorie = $request->query('categorie')) {
+            $query->where('categorie_fiche', $categorie === 'professionnel' ? CategorieFiche::ProfessionnelIndependant->value : $categorie);
+        }
 
         if ($ville = $request->query('ville')) {
             $query->where('ville', 'ilike', "%{$ville}%");
@@ -56,25 +63,60 @@ class CabinetController extends Controller
             $query->where(function ($q) use ($recherche) {
                 $q->where('nom', 'ilike', "%{$recherche}%")
                     ->orWhereHas('users', function ($uq) use ($recherche) {
-                        $uq->whereIn('role', [RoleUtilisateur::Administrateur->value, RoleUtilisateur::Medecin->value])
+                        $uq->whereIn('role', $this->rolesPraticiensPublics())
                             ->where('name', 'ilike', "%{$recherche}%");
                     });
             });
         }
 
-        return $query->orderByDesc('note_moyenne')->paginate($request->integer('par_page', 20));
+        if ($request->query('tri') === 'recent') {
+            $query->orderByDesc('created_at');
+        } else {
+            $query->orderByDesc('note_moyenne');
+        }
+
+        return $query->paginate($request->integer('par_page', 20));
     }
 
     public function show(Cabinet $cabinet)
     {
-        abort_unless($cabinet->actif && $cabinet->visible_annuaire, 404);
+        abort_unless($cabinet->estPubliee(), 404);
 
         return $cabinet->load([
             'specialites', 'mutuelles', 'photos', 'horaires', 'services',
             'avis' => fn ($q) => $q->where('statut', 'visible')->with('auteur:id,nom,prenom')->latest(),
             'users' => fn ($q) => $q->select('id', 'cabinet_id', 'name', 'role', 'specialite')
-                ->whereIn('role', [RoleUtilisateur::Administrateur->value, RoleUtilisateur::Medecin->value])
+                ->whereIn('role', $this->rolesPraticiensPublics())
                 ->where('actif', true),
         ]);
+    }
+
+    public function enregistrerVisite(Request $request, Cabinet $cabinet, CollecteStatistiquesFiche $collecte): Response
+    {
+        abort_unless($cabinet->estPubliee(), 404);
+
+        $collecte->enregistrerVisite($cabinet, $request);
+
+        return response()->noContent();
+    }
+
+    public function enregistrerClic(Request $request, Cabinet $cabinet, string $type, CollecteStatistiquesFiche $collecte): Response
+    {
+        abort_unless($cabinet->estPubliee(), 404);
+
+        $collecte->enregistrerClic($cabinet, $type);
+
+        return response()->noContent();
+    }
+
+    /**
+     * Rôles dont le nom est affichable comme praticien sur une fiche
+     * publique : le personnel Office classique, et le partenaire lui-même
+     * pour une fiche "professionnel indépendant" (c'est alors la seule
+     * personne rattachée à la fiche).
+     */
+    private function rolesPraticiensPublics(): array
+    {
+        return [RoleUtilisateur::Administrateur->value, RoleUtilisateur::Medecin->value, RoleUtilisateur::Partenaire->value];
     }
 }

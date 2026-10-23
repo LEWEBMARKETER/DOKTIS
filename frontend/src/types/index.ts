@@ -1,4 +1,4 @@
-export type Role = 'super_admin' | 'administrateur' | 'medecin' | 'secretaire' | 'assistant';
+export type Role = 'super_admin' | 'administrateur' | 'medecin' | 'secretaire' | 'assistant' | 'partenaire';
 
 export interface Cabinet {
   id: number;
@@ -216,6 +216,7 @@ export interface DirectoryCabinet {
   nom: string;
   slug: string;
   type: string;
+  categorie_fiche: 'structure' | 'professionnel_independant';
   telephone: string | null;
   email: string | null;
   adresse: string | null;
@@ -235,4 +236,96 @@ export interface DirectoryCabinet {
   services?: CabinetServicePublic[];
   avis?: AvisPublic[];
   users?: PraticienPublic[];
+}
+
+// --- Directory-first : administration et espace partenaire ---
+
+export type CategorieFiche = 'structure' | 'professionnel_independant';
+export type StatutVerificationFiche = 'non_verifiee' | 'en_attente_verification' | 'verifiee';
+export type StatutPublicationFiche = 'brouillon' | 'publiee' | 'suspendue' | 'archivee';
+export type StatutDemandeRendezVous = 'en_attente' | 'confirmee' | 'refusee' | 'annulee' | 'terminee';
+export type StatutDemandeModification = 'en_attente' | 'validee' | 'refusee';
+export type ProduitAbonnement = 'office' | 'directory_structure' | 'directory_professionnel';
+
+export interface AdminFiche {
+  id: number;
+  nom: string;
+  slug: string;
+  categorie_fiche: CategorieFiche;
+  statut_verification: StatutVerificationFiche;
+  statut_publication: StatutPublicationFiche;
+  type: string;
+  telephone: string | null;
+  email: string | null;
+  adresse: string | null;
+  ville: string | null;
+  quartier: string | null;
+  description: string | null;
+  actif: boolean;
+  created_at: string;
+  users_count?: number;
+  specialites?: Specialite[];
+  users?: { id: number; name: string; email: string; role: Role; actif: boolean }[];
+  invitations_partenaire?: { id: number; email: string; expire_at: string; utilise_at: string | null }[];
+  abonnements?: AbonnementAdmin[];
+}
+
+export interface AbonnementAdmin {
+  id: number;
+  cabinet_id: number;
+  produit: ProduitAbonnement;
+  plan: string;
+  prix: string;
+  cycle_facturation: 'mensuel' | 'annuel';
+  statut: 'actif' | 'suspendu' | 'annule' | 'expire';
+  date_debut: string;
+  date_fin: string | null;
+  mode_paiement: string | null;
+  cabinet?: { id: number; nom: string };
+  paiements?: PaiementAbonnement[];
+}
+
+export interface PaiementAbonnement {
+  id: number;
+  abonnement_id: number;
+  montant: string;
+  mode_paiement: 'airtel_money' | 'moov_money' | 'virement' | 'especes';
+  reference: string | null;
+  date_paiement: string;
+}
+
+export interface DemandeRendezVousAdmin {
+  id: number;
+  cabinet_id: number;
+  nom: string;
+  prenom: string;
+  telephone: string;
+  email: string | null;
+  date_souhaitee: string;
+  creneau_souhaite: string | null;
+  motif: string | null;
+  statut: StatutDemandeRendezVous;
+  notes_partenaire: string | null;
+  date_proposee: string | null;
+  creneau_propose: string | null;
+  cabinet?: { id: number; nom: string; categorie_fiche?: CategorieFiche };
+}
+
+export interface DemandeModificationFicheAdmin {
+  id: number;
+  cabinet_id: number;
+  partenaire_id: number;
+  champs_proposes: Record<string, unknown>;
+  statut: StatutDemandeModification;
+  commentaire_admin: string | null;
+  cabinet?: { id: number; nom: string };
+  partenaire?: { id: number; name: string };
+}
+
+export interface PartenaireAdmin {
+  id: number;
+  name: string;
+  email: string;
+  actif: boolean;
+  cabinet?: { id: number; nom: string; categorie_fiche: CategorieFiche };
 }

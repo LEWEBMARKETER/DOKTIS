@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Models\Abonnement;
 use App\Models\Cabinet;
+use App\Models\DemandeRendezVous;
 use App\Models\Facture;
 use App\Models\Patient;
 use App\Models\PatientAccount;
@@ -30,6 +31,15 @@ class StatistiquesController extends Controller
                 ->where('statut', '!=', 'annulee')
                 ->sum('montant_total'),
             'tickets_ouverts' => TicketSupport::whereIn('statut', ['ouvert', 'en_cours'])->count(),
+            // Directory-first : indicateurs plateforme pour le tableau de
+            // bord /admin (mission Partie C).
+            'fiches_publiees' => Cabinet::where('statut_publication', 'publiee')->count(),
+            'fiches_en_attente_verification' => Cabinet::where('statut_verification', 'en_attente_verification')->count(),
+            'fiches_brouillon' => Cabinet::where('statut_publication', 'brouillon')->count(),
+            'abonnements_directory_actifs' => Abonnement::where('statut', 'actif')
+                ->whereIn('produit', ['directory_structure', 'directory_professionnel'])
+                ->count(),
+            'demandes_rendez_vous_en_attente' => DemandeRendezVous::where('statut', 'en_attente')->count(),
         ]);
     }
 }

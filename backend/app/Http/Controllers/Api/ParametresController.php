@@ -42,7 +42,10 @@ class ParametresController extends Controller
             'site_web' => ['nullable', 'url', 'max:255'],
             'facebook_url' => ['nullable', 'url', 'max:255'],
             'instagram_url' => ['nullable', 'url', 'max:255'],
-            'visible_annuaire' => ['sometimes', 'boolean'],
+            // "visible_annuaire" n'est plus un champ modifiable ici depuis le
+            // repositionnement Directory-first : seul un administrateur
+            // DOKTIS peut publier/dépublier une fiche (App\Http\Controllers\
+            // Api\Admin\FicheController), jamais le cabinet lui-même.
             'specialite_ids' => ['sometimes', 'array'],
             'specialite_ids.*' => ['exists:specialites,id'],
             'mutuelle_ids' => ['sometimes', 'array'],

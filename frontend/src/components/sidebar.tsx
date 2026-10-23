@@ -5,14 +5,14 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 
 const NAV = [
-  { href: '/', label: 'Tableau de bord', icon: '📊', roles: ['administrateur', 'medecin', 'secretaire', 'assistant'] },
-  { href: '/patients', label: 'Patients', icon: '🧑‍🤝‍🧑', roles: ['administrateur', 'medecin', 'secretaire', 'assistant'] },
-  { href: '/agenda', label: 'Agenda', icon: '📅', roles: ['administrateur', 'medecin', 'secretaire', 'assistant'] },
-  { href: '/consultations', label: 'Consultations', icon: '🩺', roles: ['administrateur', 'medecin', 'assistant'] },
-  { href: '/facturation', label: 'Facturation', icon: '💳', roles: ['administrateur', 'secretaire'] },
-  { href: '/statistiques', label: 'Statistiques', icon: '📈', roles: ['administrateur'] },
-  { href: '/administration', label: 'Équipe du cabinet', icon: '⚙️', roles: ['administrateur'] },
-  { href: '/cabinets', label: 'Cabinets DOKTIS', icon: '🏥', roles: ['super_admin'] },
+  { href: '/office', label: 'Tableau de bord', icon: '📊', roles: ['administrateur', 'medecin', 'secretaire', 'assistant'] },
+  { href: '/office/patients', label: 'Patients', icon: '🧑‍🤝‍🧑', roles: ['administrateur', 'medecin', 'secretaire', 'assistant'] },
+  { href: '/office/agenda', label: 'Agenda', icon: '📅', roles: ['administrateur', 'medecin', 'secretaire', 'assistant'] },
+  { href: '/office/consultations', label: 'Consultations', icon: '🩺', roles: ['administrateur', 'medecin', 'assistant'] },
+  { href: '/office/facturation', label: 'Facturation', icon: '💳', roles: ['administrateur', 'secretaire'] },
+  { href: '/office/statistiques', label: 'Statistiques', icon: '📈', roles: ['administrateur'] },
+  { href: '/office/administration', label: 'Équipe du cabinet', icon: '⚙️', roles: ['administrateur'] },
+  { href: '/admin', label: 'Administration DOKTIS', icon: '🏥', roles: ['super_admin'] },
 ];
 
 export function Sidebar() {

@@ -52,7 +52,7 @@ export default function PatientLoginPage() {
           </Link>
         </p>
         <p className="mt-2 text-center text-sm text-slate-400">
-          <Link href="/directory" className="hover:underline">
+          <Link href="/recherche" className="hover:underline">
             ← Retour à l&apos;annuaire
           </Link>
         </p>

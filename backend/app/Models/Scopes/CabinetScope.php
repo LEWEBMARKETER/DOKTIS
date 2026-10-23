@@ -28,7 +28,18 @@ class CabinetScope implements Scope
             return;
         }
 
-        if ($user->role === RoleUtilisateur::SuperAdmin->value) {
+        // Comparaison par valeur : $user->role est casté en instance de
+        // l'enum RoleUtilisateur (App\Models\User::casts()), jamais égale
+        // par ===  à la chaîne ->value. Avec l'ancienne comparaison, ce
+        // contournement pour super_admin n'était jamais atteint : une
+        // requête super_admin sur un modèle BelongsToCabinet retombait sur
+        // `WHERE cabinet_id = NULL` (super_admin n'a pas de cabinet), donc
+        // un résultat systématiquement vide plutôt que non filtré — un
+        // échec silencieux côté fonctionnalité (jamais une fuite de
+        // données, puisque NULL ne correspond jamais), mais qui aurait
+        // rendu inutilisables les vues plateforme (admin Directory) qui
+        // s'appuient sur ce contournement.
+        if ($user->role === RoleUtilisateur::SuperAdmin) {
             return;
         }
 

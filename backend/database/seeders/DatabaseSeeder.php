@@ -43,10 +43,10 @@ class DatabaseSeeder extends Seeder
             'nom' => 'Cabinet Dentaire Étoile',
             'slug' => 'cabinet-dentaire-etoile',
             'type' => 'dentaire',
-            'telephone' => '+237 690 12 34 56',
+            'telephone' => '+241 01 23 45 67',
             'email' => 'contact@cabinet-etoile.dokta',
-            'adresse' => 'Avenue Kennedy',
-            'ville' => 'Douala',
+            'adresse' => 'Avenue Léon Mba',
+            'ville' => 'Libreville',
             'plan' => 'pro',
             'actif' => true,
         ]);
@@ -262,17 +262,22 @@ class DatabaseSeeder extends Seeder
         $mutuelles = collect(['CNPS', 'Saham Assurance', 'Activa Assurance', 'Allianz Santé'])
             ->map(fn (string $nom) => Mutuelle::create(['nom' => $nom]));
 
-        // --- DOKTA Directory : fiche publique du cabinet démo ---
+        // --- DOKTIS Directory : fiche publique du cabinet démo ---
         $cabinet->update([
-            'quartier' => 'Bonapriso',
-            'latitude' => 4.0345,
-            'longitude' => 9.7043,
-            'description' => "Cabinet dentaire moderne au cœur de Douala, prise en charge des soins conservateurs, de l'orthodontie et de l'implantologie.",
-            'langues_parlees' => ['Français', 'Anglais'],
+            'pays' => 'Gabon',
+            'ville' => 'Libreville',
+            'quartier' => 'Glass',
+            'latitude' => 0.3901,
+            'longitude' => 9.4544,
+            'description' => "Cabinet dentaire moderne au cœur de Libreville, prise en charge des soins conservateurs, de l'orthodontie et de l'implantologie.",
+            'langues_parlees' => ['Français'],
             'accepte_urgences' => true,
             'accessible_pmr' => true,
-            'site_web' => 'https://cabinet-etoile.dokta.example',
+            'site_web' => 'https://cabinet-etoile.doktis.example',
             'visible_annuaire' => true,
+            'categorie_fiche' => 'structure',
+            'statut_verification' => 'verifiee',
+            'statut_publication' => 'publiee',
         ]);
         $cabinet->specialites()->sync([$specialites[0]->id, $specialites[1]->id]);
         $cabinet->mutuelles()->sync([$mutuelles[0]->id, $mutuelles[1]->id]);

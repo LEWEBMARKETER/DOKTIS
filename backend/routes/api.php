@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\DemandeRendezVousController as AdminDemandeRendezVousController;
 use App\Http\Controllers\Api\Admin\FicheController as AdminFicheController;
 use App\Http\Controllers\Api\Admin\InvitationController as AdminInvitationController;
 use App\Http\Controllers\Api\Admin\ModificationFicheController as AdminModificationFicheController;
+use App\Http\Controllers\Api\Admin\PartenaireController as AdminPartenaireController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AvisController;
 use App\Http\Controllers\Api\CabinetController;
@@ -182,6 +184,13 @@ Route::middleware(['auth:sanctum', 'staff', 'role:super_admin'])->group(function
     Route::get('admin/demandes-modification-fiche', [AdminModificationFicheController::class, 'index']);
     Route::post('admin/demandes-modification-fiche/{demande}/valider', [AdminModificationFicheController::class, 'valider']);
     Route::post('admin/demandes-modification-fiche/{demande}/refuser', [AdminModificationFicheController::class, 'refuser']);
+
+    // Vue d'ensemble plateforme (lecture seule) : le traitement reste du
+    // ressort du partenaire concerné.
+    Route::get('admin/demandes-rendez-vous', [AdminDemandeRendezVousController::class, 'index']);
+
+    Route::get('admin/partenaires', [AdminPartenaireController::class, 'index']);
+    Route::patch('admin/partenaires/{partenaire}', [AdminPartenaireController::class, 'update']);
 });
 
 /*

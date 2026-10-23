@@ -69,7 +69,13 @@ class CabinetController extends Controller
             });
         }
 
-        return $query->orderByDesc('note_moyenne')->paginate($request->integer('par_page', 20));
+        if ($request->query('tri') === 'recent') {
+            $query->orderByDesc('created_at');
+        } else {
+            $query->orderByDesc('note_moyenne');
+        }
+
+        return $query->paginate($request->integer('par_page', 20));
     }
 
     public function show(Cabinet $cabinet)

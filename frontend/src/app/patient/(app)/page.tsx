@@ -85,7 +85,7 @@ export default function PatientDashboardPage() {
             <p className="text-sm text-slate-500">Échangez avec vos cabinets</p>
           </Card>
         </Link>
-        <Link href="/directory">
+        <Link href="/recherche">
           <Card className="transition-shadow hover:shadow-md">
             <p className="text-2xl">🔍</p>
             <p className="mt-2 font-medium text-slate-900">Trouver un cabinet</p>

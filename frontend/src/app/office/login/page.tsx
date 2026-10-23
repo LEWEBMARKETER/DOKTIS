@@ -47,7 +47,7 @@ export default function LoginPage() {
         </form>
         <p className="mt-4 text-center text-sm text-slate-500">
           Nouveau cabinet ?{' '}
-          <Link href="/register" className="font-medium text-teal-600 hover:underline">
+          <Link href="/office/register" className="font-medium text-teal-600 hover:underline">
             Créer un compte
           </Link>
         </p>

@@ -119,7 +119,7 @@ export default function FacturationPage() {
             {factures.map((f) => (
               <tr key={f.id} className="hover:bg-slate-50">
                 <td className="px-4 py-3">
-                  <Link href={`/facturation/${f.id}`} className="font-medium text-teal-700 hover:underline">
+                  <Link href={`/office/facturation/${f.id}`} className="font-medium text-teal-700 hover:underline">
                     {f.numero}
                   </Link>
                 </td>

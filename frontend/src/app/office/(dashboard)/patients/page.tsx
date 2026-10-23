@@ -101,7 +101,7 @@ export default function PatientsPage() {
               <tr key={p.id} className="hover:bg-slate-50">
                 <td className="px-4 py-3 text-slate-500">{p.numero_dossier}</td>
                 <td className="px-4 py-3">
-                  <Link href={`/patients/${p.id}`} className="font-medium text-teal-700 hover:underline">
+                  <Link href={`/office/patients/${p.id}`} className="font-medium text-teal-700 hover:underline">
                     {p.prenom} {p.nom}
                   </Link>
                 </td>

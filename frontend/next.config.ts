@@ -33,6 +33,15 @@ const nextConfig: NextConfig = {
       { source: "/sanctum/:path*", destination: `${BACKEND_URL}/sanctum/:path*` },
     ];
   },
+  // Ancienne route de la liste publique (avant le repositionnement
+  // Directory-first) : redirige proprement vers la nouvelle page de
+  // recherche, en conservant les paramètres de requête existants. La
+  // fiche d'un cabinet (/directory/{id}) est gérée par
+  // app/directory/[id]/page.tsx (résolution id → slug, pas une simple
+  // redirection statique).
+  async redirects() {
+    return [{ source: '/directory', destination: '/recherche', permanent: true }];
+  },
   async headers() {
     return [
       {

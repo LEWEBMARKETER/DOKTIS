@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (email: string, password: string) => {
       const res = await api.post<{ user: User }>('/auth/login', { email, password });
       setUser(res.user);
-      router.push('/');
+      router.push('/office');
     },
     [router],
   );
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // ignore
     }
     setUser(null);
-    router.push('/login');
+    router.push('/office/login');
   }, [router]);
 
   return (

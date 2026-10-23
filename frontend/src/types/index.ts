@@ -216,6 +216,7 @@ export interface DirectoryCabinet {
   nom: string;
   slug: string;
   type: string;
+  categorie_fiche: 'structure' | 'professionnel_independant';
   telephone: string | null;
   email: string | null;
   adresse: string | null;

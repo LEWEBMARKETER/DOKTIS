@@ -48,7 +48,7 @@ export default function ConsultationsPage() {
                   {new Date(c.date_consultation).toLocaleDateString('fr-FR', { dateStyle: 'medium' })}
                 </td>
                 <td className="px-4 py-3">
-                  <Link href={`/patients/${c.patient_id}`} className="font-medium text-teal-700 hover:underline">
+                  <Link href={`/office/patients/${c.patient_id}`} className="font-medium text-teal-700 hover:underline">
                     {c.patient?.prenom} {c.patient?.nom}
                   </Link>
                 </td>

@@ -33,7 +33,7 @@ export default function RegisterPage() {
     try {
       await api.post<{ cabinet: Cabinet; user: User }>('/auth/register-cabinet', form);
       await refresh();
-      router.push('/');
+      router.push('/office');
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Inscription impossible.');
     } finally {
@@ -79,7 +79,7 @@ export default function RegisterPage() {
         </form>
         <p className="mt-4 text-center text-sm text-slate-500">
           Déjà inscrit ?{' '}
-          <Link href="/login" className="font-medium text-teal-600 hover:underline">
+          <Link href="/office/login" className="font-medium text-teal-600 hover:underline">
             Se connecter
           </Link>
         </p>

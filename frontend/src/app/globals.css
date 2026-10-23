@@ -5,11 +5,19 @@
   --foreground: #171717;
 }
 
+/* Identité graphique DOKTIS Directory (annuaire public uniquement — le
+   reste de l'application garde son thème teal existant pour ne pas
+   provoquer une refonte visuelle non demandée). */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-doktis: var(--font-plus-jakarta);
+  --color-doktis-petrol: #0B3B4A;
+  --color-doktis-turquoise: #13B8A6;
+  --color-doktis-blanc: #F7FAFA;
+  --color-doktis-anthracite: #263238;
 }
 
 @media (prefers-color-scheme: dark) {

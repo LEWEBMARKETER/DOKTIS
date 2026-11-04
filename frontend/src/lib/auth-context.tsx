@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await api.post<{ user: User; token: string }>('/auth/login', { email, password });
       setToken(res.token);
       setUser(res.user);
-      router.push('/');
+      router.push('/pro');
     },
     [router],
   );

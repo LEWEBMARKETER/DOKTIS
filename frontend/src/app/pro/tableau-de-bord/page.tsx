@@ -28,7 +28,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (user?.role === 'super_admin') {
-      router.replace('/cabinets');
+      router.replace('/pro/cabinets');
       return;
     }
     api
@@ -41,10 +41,10 @@ export default function DashboardPage() {
   if (!stats) return <p className="text-slate-400">Chargement…</p>;
 
   const cards = [
-    { label: 'Patients', value: stats.total_patients, href: '/patients' },
-    { label: "Rendez-vous aujourd'hui", value: stats.rendez_vous_aujourdhui, href: '/agenda' },
-    { label: 'Consultations ce mois', value: stats.consultations_mois, href: '/consultations' },
-    { label: 'Factures impayées', value: stats.factures_impayees, href: '/facturation' },
+    { label: 'Patients', value: stats.total_patients, href: '/pro/patients' },
+    { label: "Rendez-vous aujourd'hui", value: stats.rendez_vous_aujourdhui, href: '/pro/agenda' },
+    { label: 'Consultations ce mois', value: stats.consultations_mois, href: '/pro/consultations' },
+    { label: 'Factures impayées', value: stats.factures_impayees, href: '/pro/facturation' },
   ];
 
   return (

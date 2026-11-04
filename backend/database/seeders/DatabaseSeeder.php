@@ -10,8 +10,8 @@ use App\Models\CabinetHoraire;
 use App\Models\CabinetService;
 use App\Models\Consultation;
 use App\Models\Conversation;
-use App\Models\Depense;
 use App\Models\DentTraitement;
+use App\Models\Depense;
 use App\Models\Devis;
 use App\Models\Facture;
 use App\Models\Mutuelle;
@@ -24,6 +24,7 @@ use App\Models\Specialite;
 use App\Models\TicketSupport;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -251,7 +252,7 @@ class DatabaseSeeder extends Seeder
         User $admin,
         User $medecin,
         User $secretaire,
-        \Illuminate\Support\Collection $patients,
+        Collection $patients,
     ): void {
         // --- Référentiels partagés par tous les cabinets ---
         $specialites = collect([
@@ -414,10 +415,10 @@ class DatabaseSeeder extends Seeder
         $ticket = TicketSupport::create([
             'cabinet_id' => $cabinet->id,
             'sujet' => "Question sur l'export comptable",
-            'description' => "Comment exporter le journal de caisse du mois dernier au format Excel ?",
+            'description' => 'Comment exporter le journal de caisse du mois dernier au format Excel ?',
             'statut' => 'ouvert',
             'priorite' => 'normale',
         ]);
-        $ticket->messages()->create(['auteur_type' => 'staff', 'auteur_id' => $admin->id, 'contenu' => "Comment exporter le journal de caisse du mois dernier au format Excel ?"]);
+        $ticket->messages()->create(['auteur_type' => 'staff', 'auteur_id' => $admin->id, 'contenu' => 'Comment exporter le journal de caisse du mois dernier au format Excel ?']);
     }
 }

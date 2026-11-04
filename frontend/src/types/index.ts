@@ -9,6 +9,11 @@ export interface Cabinet {
   email: string | null;
   plan: string;
   actif: boolean;
+  whatsapp?: string | null;
+  ville?: string | null;
+  quartier?: string | null;
+  visible_annuaire?: boolean;
+  statut_fiche?: 'non_revendiquee' | 'en_attente' | 'verifiee';
 }
 
 export interface User {

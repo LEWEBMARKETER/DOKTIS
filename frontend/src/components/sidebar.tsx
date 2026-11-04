@@ -3,38 +3,44 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import { MODULES, type Module } from '@/lib/modules';
+import type { Role } from '@/types';
 
-const NAV = [
-  { href: '/', label: 'Tableau de bord', icon: '📊', roles: ['administrateur', 'medecin', 'secretaire', 'assistant'] },
-  { href: '/patients', label: 'Patients', icon: '🧑‍🤝‍🧑', roles: ['administrateur', 'medecin', 'secretaire', 'assistant'] },
-  { href: '/agenda', label: 'Agenda', icon: '📅', roles: ['administrateur', 'medecin', 'secretaire', 'assistant'] },
-  { href: '/consultations', label: 'Consultations', icon: '🩺', roles: ['administrateur', 'medecin', 'assistant'] },
-  { href: '/facturation', label: 'Facturation', icon: '💳', roles: ['administrateur', 'secretaire'] },
-  { href: '/statistiques', label: 'Statistiques', icon: '📈', roles: ['administrateur'] },
-  { href: '/administration', label: 'Équipe du cabinet', icon: '⚙️', roles: ['administrateur'] },
-  { href: '/cabinets', label: 'Cabinets DOKTA', icon: '🏥', roles: ['super_admin'] },
+const EQUIPE: Role[] = ['administrateur', 'medecin', 'secretaire', 'assistant'];
+
+const NAV: { href: string; label: string; icon: string; roles: Role[]; module?: Module }[] = [
+  { href: '/pro', label: 'Ma fiche annuaire', icon: '📍', roles: EQUIPE },
+  { href: '/pro/tableau-de-bord', label: 'Tableau de bord', icon: '📊', roles: EQUIPE, module: 'saas' },
+  { href: '/pro/patients', label: 'Patients', icon: '🧑‍🤝‍🧑', roles: EQUIPE, module: 'saas' },
+  { href: '/pro/agenda', label: 'Agenda', icon: '📅', roles: EQUIPE, module: 'saas' },
+  { href: '/pro/consultations', label: 'Consultations', icon: '🩺', roles: ['administrateur', 'medecin', 'assistant'], module: 'saas' },
+  { href: '/pro/facturation', label: 'Facturation', icon: '💳', roles: ['administrateur', 'secretaire'], module: 'saas' },
+  { href: '/pro/statistiques', label: 'Statistiques', icon: '📈', roles: ['administrateur'], module: 'saas' },
+  { href: '/pro/administration', label: 'Équipe du cabinet', icon: '⚙️', roles: ['administrateur'] },
+  { href: '/pro/cabinets', label: 'Fiches annuaire', icon: '🏥', roles: ['super_admin'] },
+  { href: '/pro/revendications', label: 'Revendications', icon: '✅', roles: ['super_admin'] },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
 
-  const items = NAV.filter((item) => user && item.roles.includes(user.role));
+  const items = NAV.filter((item) => user && item.roles.includes(user.role) && (!item.module || MODULES[item.module]));
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r border-slate-200 bg-white">
+    <aside className="flex w-full flex-col border-b border-slate-200 bg-white md:h-screen md:w-64 md:border-b-0 md:border-r">
       <div className="border-b border-slate-200 px-5 py-4">
-        <p className="text-lg font-bold text-teal-700">DOKTA</p>
-        {user?.cabinet && <p className="truncate text-xs text-slate-500">{user.cabinet.nom}</p>}
+        <Link href="/" className="text-lg font-bold text-teal-700">DOKTIS</Link>
+        <p className="truncate text-xs text-slate-500">{user?.cabinet ? user.cabinet.nom : 'Espace praticien'}</p>
       </div>
-      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+      <nav className="flex gap-1 overflow-x-auto p-3 md:flex-1 md:flex-col md:overflow-y-auto">
         {items.map((item) => {
-          const active = pathname === item.href;
+          const active = item.href === '/pro' ? pathname === '/pro' : pathname.startsWith(item.href);
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex shrink-0 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 active ? 'bg-teal-50 text-teal-700' : 'text-slate-600 hover:bg-slate-50'
               }`}
             >
@@ -43,8 +49,14 @@ export function Sidebar() {
             </Link>
           );
         })}
+        <button
+          onClick={() => logout()}
+          className="shrink-0 rounded-lg px-3 py-2 text-sm font-medium text-slate-500 hover:bg-slate-50 md:hidden"
+        >
+          Déconnexion
+        </button>
       </nav>
-      <div className="border-t border-slate-200 p-3">
+      <div className="hidden border-t border-slate-200 p-3 md:block">
         <p className="truncate px-2 text-sm font-medium text-slate-700">{user?.name}</p>
         <p className="truncate px-2 text-xs text-slate-400">{user?.role}</p>
         <button

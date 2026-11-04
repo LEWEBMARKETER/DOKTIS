@@ -30,8 +30,8 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
       <Card className="w-full max-w-sm">
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-teal-700">DOKTA</h1>
-          <p className="text-sm text-slate-500">Connectez-vous à votre cabinet</p>
+          <h1 className="text-2xl font-bold text-teal-700">DOKTIS</h1>
+          <p className="text-sm text-slate-500">Espace praticien</p>
         </div>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <ErrorText>{error}</ErrorText>
@@ -46,9 +46,9 @@ export default function LoginPage() {
           </Button>
         </form>
         <p className="mt-4 text-center text-sm text-slate-500">
-          Nouveau cabinet ?{' '}
+          Cabinet pas encore référencé ?{' '}
           <Link href="/register" className="font-medium text-teal-600 hover:underline">
-            Créer un compte
+            Inscrire mon cabinet
           </Link>
         </p>
       </Card>

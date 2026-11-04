@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,8 +15,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DOKTA — Gestion de cabinets dentaires et médicaux",
-  description: "Micro SaaS de gestion de cabinets dentaires et médicaux : patients, rendez-vous, consultations, facturation.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_NAME} : trouvez un médecin ou un dentiste et prenez rendez-vous sur WhatsApp`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description:
+    "Annuaire des médecins, dentistes et cliniques : horaires, tarifs indicatifs, urgences. Demandez votre rendez-vous directement sur WhatsApp.",
+  openGraph: { siteName: SITE_NAME, locale: "fr_FR", type: "website" },
 };
 
 export default function RootLayout({

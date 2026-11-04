@@ -12,7 +12,7 @@ import type { FicheCabinet, Horaire, ServiceCabinet, Specialite } from '@/types/
 
 interface Statistiques {
   periode_jours: number;
-  totaux: { vues: number; clics_whatsapp: number; clics_telephone: number };
+  totaux: { vues: number; clics_whatsapp: number; clics_telephone: number; vues_qr: number; vues_lien: number };
 }
 
 type Parametres = FicheCabinet & { visible_annuaire: boolean };
@@ -89,8 +89,15 @@ export default function MaFichePage() {
             </div>
           ))}
         </div>
+        {stats && (stats.totaux.vues_qr > 0 || stats.totaux.vues_lien > 0) && (
+          <p className="text-sm text-slate-600">
+            Dont <span className="font-semibold tabular-nums">{stats.totaux.vues_qr}</span> visite{stats.totaux.vues_qr > 1 ? 's' : ''} par votre QR code
+            et <span className="font-semibold tabular-nums">{stats.totaux.vues_lien}</span> par votre lien partagé.
+          </p>
+        )}
         <p className="text-xs text-slate-500">
-          Une demande WhatsApp correspond à un patient qui a ouvert WhatsApp depuis votre fiche. Le message arrive directement sur votre téléphone.
+          Une demande WhatsApp correspond à un patient qui a ouvert WhatsApp depuis votre fiche. Le message arrive directement sur votre téléphone.{' '}
+          <Link href="/pro/partager" className="font-medium text-teal-700 hover:underline">Partager ma page</Link> pour en recevoir davantage.
         </p>
       </Card>
 

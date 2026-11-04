@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AvisController;
 use App\Http\Controllers\Api\CabinetController;
 use App\Http\Controllers\Api\ComptabiliteController;
 use App\Http\Controllers\Api\ConsultationController;
+use App\Http\Controllers\Api\CreneauController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DepenseController;
 use App\Http\Controllers\Api\DevisController;
@@ -102,6 +103,13 @@ Route::middleware(['auth:sanctum', 'staff'])->group(function () {
     // Statistiques anonymes de la fiche annuaire (vues, clics WhatsApp).
     Route::get('fiche/statistiques', [FicheStatistiquesController::class, 'show']);
 
+    // Créneaux de la page de réservation (libre / pris, sans donnée patient).
+    Route::get('creneaux', [CreneauController::class, 'index']);
+    Route::post('creneaux/generer', [CreneauController::class, 'generer']);
+    Route::patch('creneaux/{creneau}', [CreneauController::class, 'update']);
+    Route::delete('creneaux/{creneau}', [CreneauController::class, 'destroy']);
+    Route::delete('creneaux/jour/{date}', [CreneauController::class, 'viderJour']);
+
     Route::get('support/tickets', [SupportController::class, 'index']);
     Route::post('support/tickets', [SupportController::class, 'store']);
     Route::get('support/tickets/{ticket}', [SupportController::class, 'show']);
@@ -193,6 +201,7 @@ Route::prefix('patient')->middleware('module:patient')->group(function () {
 Route::prefix('directory')->group(function () {
     Route::get('/cabinets', [DirectoryCabinetController::class, 'index']);
     Route::get('/cabinets/{identifiant}', [DirectoryCabinetController::class, 'show']);
+    Route::get('/cabinets/{identifiant}/creneaux', [DirectoryCabinetController::class, 'creneaux']);
     Route::get('/specialites', [DirectorySpecialiteController::class, 'index']);
     Route::get('/localites', [DirectoryLocaliteController::class, 'index']);
     Route::get('/plan-du-site', [DirectoryLocaliteController::class, 'planDuSite']);

@@ -79,3 +79,18 @@ export interface PlanDuSite {
   cabinets: { slug: string; updated_at: string }[];
   pages: { specialite: string; ville: string; quartier: string | null; total: number }[];
 }
+
+export interface CreneauPublic {
+  id: number;
+  debut: string;
+  fin: string;
+  date_locale: string;
+  heure_debut: string;
+  heure_fin: string;
+  praticien: { id: number; name: string } | null;
+}
+
+export interface CreneauCabinet extends CreneauPublic {
+  statut: 'libre' | 'pris';
+  demandes: number;
+}

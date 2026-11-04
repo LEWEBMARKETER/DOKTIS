@@ -4,6 +4,8 @@ export interface DemandeRendezVous {
   cabinet: string;
   praticien?: string;
   motif?: string;
+  /** Créneau précis choisi dans la liste (« mercredi 4 novembre à 08 h 30 »). */
+  creneau?: string;
   moment?: string;
   nom?: string;
 }
@@ -17,7 +19,8 @@ export function messageRendezVous(d: DemandeRendezVous): string {
     `Bonjour, je souhaite prendre rendez-vous au ${d.cabinet}${d.praticien ? ` avec ${d.praticien}` : ''}.`,
   ];
   if (d.motif) lignes.push(`Motif : ${d.motif}.`);
-  if (d.moment) lignes.push(`Moment souhaité : ${d.moment}.`);
+  if (d.creneau) lignes.push(`Créneau souhaité : ${d.creneau}.`);
+  else if (d.moment) lignes.push(`Moment souhaité : ${d.moment}.`);
   if (d.nom) lignes.push(`Nom : ${d.nom}.`);
   lignes.push('(Demande envoyée depuis DOKTIS)');
   return lignes.join('\n');
@@ -42,10 +45,16 @@ export type EvenementFiche = 'vue' | 'clic_whatsapp' | 'clic_telephone';
  * Compteur anonyme. Formulaire URL-encodé via sendBeacon : pas de requête
  * préalable CORS, et l'envoi survit à l'ouverture de WhatsApp.
  */
-export function signalerEvenement(slug: string, type: EvenementFiche): void {
+export function signalerEvenement(
+  slug: string,
+  type: EvenementFiche,
+  extra: { source?: string | null; creneau_id?: number | null } = {},
+): void {
   try {
     const url = `${PUBLIC_API_URL}/directory/cabinets/${encodeURIComponent(slug)}/evenements`;
     const corps = new URLSearchParams({ type });
+    if (extra.source) corps.set('source', extra.source);
+    if (extra.creneau_id) corps.set('creneau_id', String(extra.creneau_id));
     if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
       navigator.sendBeacon(url, corps);
     } else {

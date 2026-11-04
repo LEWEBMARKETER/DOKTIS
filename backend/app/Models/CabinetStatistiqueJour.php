@@ -21,7 +21,13 @@ class CabinetStatistiqueJour extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['cabinet_id', 'jour', 'vues', 'clics_whatsapp', 'clics_telephone'];
+    /** Origine d'une vue : QR code imprimé ou lien partagé par le praticien. */
+    public const SOURCES = [
+        'qr' => 'vues_qr',
+        'lien' => 'vues_lien',
+    ];
+
+    protected $fillable = ['cabinet_id', 'jour', 'vues', 'clics_whatsapp', 'clics_telephone', 'vues_qr', 'vues_lien'];
 
     protected function casts(): array
     {
@@ -30,6 +36,8 @@ class CabinetStatistiqueJour extends Model
             'vues' => 'integer',
             'clics_whatsapp' => 'integer',
             'clics_telephone' => 'integer',
+            'vues_qr' => 'integer',
+            'vues_lien' => 'integer',
         ];
     }
 
@@ -38,9 +46,12 @@ class CabinetStatistiqueJour extends Model
         return $this->belongsTo(Cabinet::class);
     }
 
-    public static function enregistrer(int $cabinetId, string $evenement): void
+    public static function enregistrer(int $cabinetId, string $evenement, ?string $source = null): void
     {
-        $colonne = self::EVENEMENTS[$evenement];
+        $colonnes = [self::EVENEMENTS[$evenement]];
+        if ($evenement === 'vue' && $source && isset(self::SOURCES[$source])) {
+            $colonnes[] = self::SOURCES[$source];
+        }
         $jour = now(config('dokta.fuseau_horaire_local'))->toDateString();
 
         DB::table('cabinet_statistiques_jour')->insertOrIgnore([
@@ -51,6 +62,6 @@ class CabinetStatistiqueJour extends Model
         DB::table('cabinet_statistiques_jour')
             ->where('cabinet_id', $cabinetId)
             ->where('jour', $jour)
-            ->increment($colonne);
+            ->incrementEach(array_fill_keys($colonnes, 1));
     }
 }

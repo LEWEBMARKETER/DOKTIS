@@ -6,6 +6,7 @@ use App\Enums\RoleUtilisateur;
 use App\Http\Controllers\Controller;
 use App\Models\Cabinet;
 use App\Models\CabinetStatistiqueJour;
+use App\Models\Creneau;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -113,11 +114,45 @@ class CabinetController extends Controller
     {
         $data = $request->validate([
             'type' => ['required', Rule::in(array_keys(CabinetStatistiqueJour::EVENEMENTS))],
+            'source' => ['nullable', Rule::in(array_keys(CabinetStatistiqueJour::SOURCES))],
+            'creneau_id' => ['nullable', 'integer'],
         ]);
 
-        CabinetStatistiqueJour::enregistrer($this->trouver($identifiant)->id, $data['type']);
+        $cabinet = $this->trouver($identifiant);
+        CabinetStatistiqueJour::enregistrer($cabinet->id, $data['type'], $data['source'] ?? null);
+
+        // Demande WhatsApp sur un créneau précis : on compte la demande sur ce
+        // créneau pour que le cabinet voie lesquels sont sollicités.
+        if ($data['type'] === 'clic_whatsapp' && ! empty($data['creneau_id'])) {
+            Creneau::withoutGlobalScopes()
+                ->where('cabinet_id', $cabinet->id)
+                ->where('statut', 'libre')
+                ->aVenir()
+                ->whereKey($data['creneau_id'])
+                ->increment('demandes');
+        }
 
         return response()->noContent();
+    }
+
+    /**
+     * Créneaux libres des prochains jours, pour la demande de rendez-vous.
+     */
+    public function creneaux(Request $request, string $identifiant)
+    {
+        $cabinet = $this->trouver($identifiant);
+        $jours = max(1, min($request->integer('jours', 14), 31));
+
+        return Creneau::withoutGlobalScopes()
+            ->where('cabinet_id', $cabinet->id)
+            ->where('statut', 'libre')
+            ->aVenir()
+            ->where('debut', '<', now()->addDays($jours))
+            ->with('praticien:id,name')
+            ->orderBy('debut')
+            ->limit(300)
+            ->get(['id', 'praticien_id', 'debut', 'fin'])
+            ->makeHidden(['praticien_id']);
     }
 
     private function trouver(string $identifiant): Cabinet

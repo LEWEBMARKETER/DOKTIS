@@ -10,6 +10,7 @@ use App\Models\CabinetHoraire;
 use App\Models\CabinetService;
 use App\Models\Consultation;
 use App\Models\Conversation;
+use App\Models\Creneau;
 use App\Models\DentTraitement;
 use App\Models\Depense;
 use App\Models\Devis;
@@ -24,6 +25,7 @@ use App\Models\Specialite;
 use App\Models\TicketSupport;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -291,6 +293,29 @@ class DatabaseSeeder extends Seeder
         CabinetService::create(['cabinet_id' => $cabinet->id, 'nom' => 'Détartrage', 'prix_indicatif' => 15000, 'duree_minutes' => 30]);
         CabinetService::create(['cabinet_id' => $cabinet->id, 'nom' => 'Consultation de contrôle', 'prix_indicatif' => 10000, 'duree_minutes' => 20]);
         CabinetService::create(['cabinet_id' => $cabinet->id, 'nom' => 'Pose de couronne', 'prix_indicatif' => 85000, 'duree_minutes' => 60]);
+
+        // --- Page de réservation : créneaux des 7 prochains jours (lundi à samedi
+        // matin), quelques-uns déjà pris. Aucune donnée patient. ---
+        $fuseau = config('dokta.fuseau_horaire_local');
+        $jour = now($fuseau)->startOfDay();
+        for ($i = 0; $i < 7; $i++, $jour->addDay()) {
+            if ($jour->isSunday()) {
+                continue;
+            }
+            foreach (['08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30'] as $index => $heure) {
+                $debut = Carbon::createFromFormat('Y-m-d H:i', $jour->toDateString().' '.$heure, $fuseau);
+                if ($debut->isPast()) {
+                    continue;
+                }
+                Creneau::withoutGlobalScopes()->create([
+                    'cabinet_id' => $cabinet->id,
+                    'praticien_id' => $index % 2 === 0 ? $admin->id : $medecin->id,
+                    'debut' => $debut->copy()->utc(),
+                    'fin' => $debut->copy()->addMinutes(30)->utc(),
+                    'statut' => ($i + $index) % 4 === 0 ? 'pris' : 'libre',
+                ]);
+            }
+        }
 
         // --- Annuaire V1 : fiches de démonstration créées par l'équipe DOKTIS,
         // non revendiquées (noms fictifs). ---

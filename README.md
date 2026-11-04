@@ -14,7 +14,10 @@ Plateforme santé en deux temps :
 - Mention « Informations non vérifiées » et revendication de fiche par le praticien.
 - `sitemap.xml`, `robots.txt`, `llms.txt` (présentation pour les assistants IA) et données structurées schema.org sur chaque page.
 
-**Espace praticien** (`/pro`) : page « Ma fiche annuaire » (informations, WhatsApp, spécialités, horaires, tarifs) et statistiques anonymes (vues, demandes WhatsApp, appels).
+**Espace praticien** (`/pro`)
+- « Ma fiche annuaire » : informations, WhatsApp, spécialités, horaires, tarifs, et statistiques anonymes (vues, demandes WhatsApp, appels, visites par QR code ou lien partagé).
+- « Mes créneaux » : le praticien ouvre ses disponibilités en lot (période, jours, plage horaire, durée, praticien). Sur la fiche, le patient choisit un créneau, qui est repris dans le message WhatsApp. Le cabinet marque ensuite le créneau « pris » en un clic et voit combien de demandes chaque créneau a reçues. Un créneau n'est que « libre » ou « pris » : aucune donnée patient.
+- « Partager ma page » : lien à copier, QR code à télécharger et affiche imprimable. Les visites arrivées par `?source=qr` ou `?source=lien` sont comptées à part.
 
 **Super Admin** (`/pro/cabinets`, `/pro/revendications`) : création de fiches pré-remplies, validation des inscriptions, traitement des revendications (le compte du praticien est créé à l'approbation).
 
@@ -111,6 +114,8 @@ php artisan test
 - `GET /api/directory/cabinets` (filtres `q`, `specialite`, `ville`, `quartier`, `ouvert`, `urgence`, `whatsapp`…), `/api/directory/cabinets/{id|slug}`, `/api/directory/localites`, `/api/directory/plan-du-site` — annuaire public.
 - `POST /api/directory/cabinets/{slug}/evenements` (`type` = `vue`, `clic_whatsapp`, `clic_telephone`) et `/api/directory/cabinets/{slug}/revendications`.
 - `GET /api/fiche/statistiques` — statistiques de la fiche du cabinet connecté.
+- `GET /api/directory/cabinets/{slug}/creneaux` — créneaux libres des 14 prochains jours (public).
+- `GET /api/creneaux`, `POST /api/creneaux/generer`, `PATCH|DELETE /api/creneaux/{id}`, `DELETE /api/creneaux/jour/{date}` — gestion des créneaux par l'équipe du cabinet.
 - `POST /api/cabinets`, `GET /api/super-admin/revendications`, `POST /api/super-admin/revendications/{id}/approuver|rejeter` — Super Admin.
 - `GET /api/super-admin/statistiques` — Super Admin DOKTA (rôle `super_admin`).
 
@@ -118,4 +123,4 @@ Le fichier `routes/api.php` regroupe l'ensemble des routes par module.
 
 ## Vision long terme
 
-Page de réservation gratuite pour les praticiens (créneaux libres ou pris), pharmacies de garde, activation du SaaS en V2, application praticien mobile, téléconsultation, IA d'aide au diagnostic, gestion de stock (voir le cahier des charges).
+Rappels automatiques (SMS ou API WhatsApp, offre Pro), pharmacies de garde, activation du SaaS en V2, application praticien mobile, téléconsultation, IA d'aide au diagnostic, gestion de stock (voir le cahier des charges).

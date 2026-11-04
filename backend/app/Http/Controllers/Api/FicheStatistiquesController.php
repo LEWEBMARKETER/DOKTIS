@@ -22,7 +22,7 @@ class FicheStatistiquesController extends Controller
         $lignes = CabinetStatistiqueJour::where('cabinet_id', $cabinetId)
             ->where('jour', '>=', $debut)
             ->orderBy('jour')
-            ->get(['jour', 'vues', 'clics_whatsapp', 'clics_telephone']);
+            ->get(['jour', 'vues', 'clics_whatsapp', 'clics_telephone', 'vues_qr', 'vues_lien']);
 
         return response()->json([
             'periode_jours' => $jours,
@@ -30,6 +30,8 @@ class FicheStatistiquesController extends Controller
                 'vues' => (int) $lignes->sum('vues'),
                 'clics_whatsapp' => (int) $lignes->sum('clics_whatsapp'),
                 'clics_telephone' => (int) $lignes->sum('clics_telephone'),
+                'vues_qr' => (int) $lignes->sum('vues_qr'),
+                'vues_lien' => (int) $lignes->sum('vues_lien'),
             ],
             'par_jour' => $lignes,
         ]);

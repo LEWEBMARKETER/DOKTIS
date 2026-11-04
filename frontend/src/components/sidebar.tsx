@@ -10,6 +10,8 @@ const EQUIPE: Role[] = ['administrateur', 'medecin', 'secretaire', 'assistant'];
 
 const NAV: { href: string; label: string; icon: string; roles: Role[]; module?: Module }[] = [
   { href: '/pro', label: 'Ma fiche annuaire', icon: '📍', roles: EQUIPE },
+  { href: '/pro/creneaux', label: 'Mes créneaux', icon: '🗓️', roles: EQUIPE },
+  { href: '/pro/partager', label: 'Partager ma page', icon: '🔗', roles: EQUIPE },
   { href: '/pro/tableau-de-bord', label: 'Tableau de bord', icon: '📊', roles: EQUIPE, module: 'saas' },
   { href: '/pro/patients', label: 'Patients', icon: '🧑‍🤝‍🧑', roles: EQUIPE, module: 'saas' },
   { href: '/pro/agenda', label: 'Agenda', icon: '📅', roles: EQUIPE, module: 'saas' },
@@ -28,7 +30,7 @@ export function Sidebar() {
   const items = NAV.filter((item) => user && item.roles.includes(user.role) && (!item.module || MODULES[item.module]));
 
   return (
-    <aside className="flex w-full flex-col border-b border-slate-200 bg-white md:h-screen md:w-64 md:border-b-0 md:border-r">
+    <aside className="flex w-full flex-col print:hidden border-b border-slate-200 bg-white md:h-screen md:w-64 md:border-b-0 md:border-r">
       <div className="border-b border-slate-200 px-5 py-4">
         <Link href="/" className="text-lg font-bold text-teal-700">DOKTIS</Link>
         <p className="truncate text-xs text-slate-500">{user?.cabinet ? user.cabinet.nom : 'Espace praticien'}</p>

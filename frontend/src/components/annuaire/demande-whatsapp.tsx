@@ -1,7 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { heureLisible, jourCourt, jourLong } from '@/lib/dates';
+import { PUBLIC_API_URL } from '@/lib/site';
 import { formaterNumero, lienWhatsApp, messageRendezVous, signalerEvenement } from '@/lib/whatsapp';
+import type { CreneauPublic } from '@/types/directory';
 
 interface Props {
   slug: string;
@@ -14,6 +17,26 @@ interface Props {
 
 const MOTIFS_GENERAUX = ['Consultation', 'Contrôle ou suivi', 'Urgence', 'Soins'];
 const MOMENTS = ['Dès que possible', 'Cette semaine', 'Un matin', 'Un après-midi', 'Samedi'];
+const CHAMP = 'rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm';
+
+/** Créneaux libres publiés par le cabinet, chargés sans cache pour rester à jour. */
+function useCreneaux(slug: string, actif: boolean) {
+  const [creneaux, setCreneaux] = useState<CreneauPublic[] | null>(null);
+
+  useEffect(() => {
+    if (!actif) return;
+    let annule = false;
+    fetch(`${PUBLIC_API_URL}/directory/cabinets/${encodeURIComponent(slug)}/creneaux`, { headers: { Accept: 'application/json' } })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: CreneauPublic[]) => !annule && setCreneaux(data))
+      .catch(() => !annule && setCreneaux([]));
+    return () => {
+      annule = true;
+    };
+  }, [slug, actif]);
+
+  return creneaux;
+}
 
 export function DemandeWhatsApp({ slug, cabinet, whatsapp, telephone, praticiens, services }: Props) {
   const motifs = useMemo(() => Array.from(new Set([...MOTIFS_GENERAUX, ...services])), [services]);
@@ -21,15 +44,31 @@ export function DemandeWhatsApp({ slug, cabinet, whatsapp, telephone, praticiens
   const [moment, setMoment] = useState(MOMENTS[0]);
   const [praticien, setPraticien] = useState('');
   const [nom, setNom] = useState('');
+  const [jourChoisi, setJourChoisi] = useState<string | null>(null);
+  const [creneau, setCreneau] = useState<CreneauPublic | null>(null);
+  const [autreMoment, setAutreMoment] = useState(false);
 
-  const message = messageRendezVous({ cabinet, praticien: praticien || undefined, motif, moment, nom: nom.trim() || undefined });
+  const creneaux = useCreneaux(slug, Boolean(whatsapp));
+  const parJour = useMemo(() => {
+    const groupes = new Map<string, CreneauPublic[]>();
+    for (const c of creneaux ?? []) groupes.set(c.date_locale, [...(groupes.get(c.date_locale) ?? []), c]);
+    return groupes;
+  }, [creneaux]);
+  const jours = Array.from(parJour.keys());
+  const jourActif = jourChoisi ?? jours[0] ?? null;
+  const avecCreneaux = jours.length > 0 && !autreMoment;
+
+  const message = messageRendezVous({
+    cabinet,
+    praticien: (avecCreneaux ? creneau?.praticien?.name : praticien) || undefined,
+    motif,
+    creneau: avecCreneaux && creneau ? `${jourLong(creneau.date_locale)} à ${heureLisible(creneau.heure_debut)}` : undefined,
+    moment: avecCreneaux ? (creneau ? undefined : 'Dès que possible') : moment,
+    nom: nom.trim() || undefined,
+  });
 
   if (!whatsapp && !telephone) {
-    return (
-      <p className="text-sm text-slate-600">
-        Ce cabinet n&apos;a pas encore indiqué de numéro de contact.
-      </p>
-    );
+    return <p className="text-sm text-slate-600">Ce cabinet n&apos;a pas encore indiqué de numéro de contact.</p>;
   }
 
   return (
@@ -39,34 +78,84 @@ export function DemandeWhatsApp({ slug, cabinet, whatsapp, telephone, praticiens
           className="flex flex-col gap-3"
           onSubmit={(e) => {
             e.preventDefault();
-            signalerEvenement(slug, 'clic_whatsapp');
+            signalerEvenement(slug, 'clic_whatsapp', { creneau_id: avecCreneaux ? creneau?.id : null });
             window.open(lienWhatsApp(whatsapp, message), '_blank', 'noopener,noreferrer');
           }}
         >
           <label className="flex flex-col gap-1 text-sm">
             <span className="font-medium text-slate-700">Motif</span>
-            <select id="rdv-motif" value={motif} onChange={(e) => setMotif(e.target.value)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
+            <select id="rdv-motif" value={motif} onChange={(e) => setMotif(e.target.value)} className={CHAMP}>
               {motifs.map((m) => <option key={m}>{m}</option>)}
             </select>
           </label>
-          {praticiens.length > 1 && (
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="font-medium text-slate-700">Praticien</span>
-              <select id="rdv-praticien" value={praticien} onChange={(e) => setPraticien(e.target.value)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
-                <option value="">Peu importe</option>
-                {praticiens.map((p) => <option key={p}>{p}</option>)}
-              </select>
-            </label>
+
+          {avecCreneaux ? (
+            <fieldset className="flex flex-col gap-2">
+              <legend className="mb-1 text-sm font-medium text-slate-700">Créneaux disponibles</legend>
+              <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1" role="tablist" aria-label="Jours disponibles">
+                {jours.map((j) => (
+                  <button
+                    key={j}
+                    type="button"
+                    role="tab"
+                    aria-selected={j === jourActif}
+                    onClick={() => { setJourChoisi(j); setCreneau(null); }}
+                    className={`shrink-0 rounded-lg border px-3 py-1.5 text-sm capitalize ${j === jourActif ? 'border-emerald-700 bg-emerald-50 font-semibold text-emerald-900' : 'border-slate-300 text-slate-700 hover:border-emerald-600'}`}
+                  >
+                    {jourCourt(j)}
+                  </button>
+                ))}
+              </div>
+              <div className="grid grid-cols-3 gap-1.5">
+                {(jourActif ? parJour.get(jourActif) ?? [] : []).map((c) => {
+                  const choisi = creneau?.id === c.id;
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      aria-pressed={choisi}
+                      onClick={() => setCreneau(choisi ? null : c)}
+                      title={c.praticien ? `Avec ${c.praticien.name}` : undefined}
+                      className={`rounded-lg border px-2 py-2 text-sm tabular-nums ${choisi ? 'border-emerald-700 bg-emerald-700 font-semibold text-white' : 'border-slate-300 text-slate-800 hover:border-emerald-600'}`}
+                    >
+                      {heureLisible(c.heure_debut)}
+                    </button>
+                  );
+                })}
+              </div>
+              {creneau?.praticien && <p className="text-xs text-slate-600">Avec {creneau.praticien.name}</p>}
+              <button type="button" onClick={() => { setAutreMoment(true); setCreneau(null); }} className="self-start text-xs font-medium text-teal-800 hover:underline">
+                Aucun créneau ne convient ? Proposer un autre moment
+              </button>
+            </fieldset>
+          ) : (
+            <>
+              {praticiens.length > 1 && (
+                <label className="flex flex-col gap-1 text-sm">
+                  <span className="font-medium text-slate-700">Praticien</span>
+                  <select id="rdv-praticien" value={praticien} onChange={(e) => setPraticien(e.target.value)} className={CHAMP}>
+                    <option value="">Peu importe</option>
+                    {praticiens.map((p) => <option key={p}>{p}</option>)}
+                  </select>
+                </label>
+              )}
+              <label className="flex flex-col gap-1 text-sm">
+                <span className="font-medium text-slate-700">Moment souhaité</span>
+                <select id="rdv-moment" value={moment} onChange={(e) => setMoment(e.target.value)} className={CHAMP}>
+                  {MOMENTS.map((m) => <option key={m}>{m}</option>)}
+                </select>
+              </label>
+              {jours.length > 0 && (
+                <button type="button" onClick={() => setAutreMoment(false)} className="self-start text-xs font-medium text-teal-800 hover:underline">
+                  Revenir aux créneaux disponibles
+                </button>
+              )}
+            </>
           )}
-          <label className="flex flex-col gap-1 text-sm">
-            <span className="font-medium text-slate-700">Moment souhaité</span>
-            <select id="rdv-moment" value={moment} onChange={(e) => setMoment(e.target.value)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
-              {MOMENTS.map((m) => <option key={m}>{m}</option>)}
-            </select>
-          </label>
+
           <label className="flex flex-col gap-1 text-sm">
             <span className="font-medium text-slate-700">Votre nom <span className="font-normal text-slate-500">(facultatif)</span></span>
-            <input id="rdv-nom" value={nom} onChange={(e) => setNom(e.target.value)} maxLength={80} autoComplete="name" className="rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+            <input id="rdv-nom" value={nom} onChange={(e) => setNom(e.target.value)} maxLength={80} autoComplete="name" className={CHAMP} />
           </label>
 
           <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
@@ -78,7 +167,7 @@ export function DemandeWhatsApp({ slug, cabinet, whatsapp, telephone, praticiens
             Demander un rendez-vous sur WhatsApp
           </button>
           <p className="text-xs text-slate-500">
-            WhatsApp s&apos;ouvre avec ce message ; vous l&apos;envoyez vous-même et le cabinet vous répond pour confirmer.
+            WhatsApp s&apos;ouvre avec ce message ; vous l&apos;envoyez vous-même. {avecCreneaux ? 'Le créneau est réservé quand le cabinet vous répond pour confirmer.' : 'Le cabinet vous répond pour confirmer.'}{' '}
             DOKTIS n&apos;enregistre ni votre nom ni votre message. N&apos;indiquez pas de détails médicaux.
           </p>
         </form>
@@ -105,10 +194,14 @@ export function DemandeWhatsApp({ slug, cabinet, whatsapp, telephone, praticiens
   );
 }
 
-/** Compte une vue de fiche, une seule fois par affichage. */
+/**
+ * Compte une vue de fiche, une seule fois par affichage. L'origine est lue
+ * dans l'adresse : ?source=qr (affiche, QR code) ou ?source=lien (lien partagé).
+ */
 export function CompteurVue({ slug }: { slug: string }) {
   useEffect(() => {
-    signalerEvenement(slug, 'vue');
+    const source = new URLSearchParams(window.location.search).get('source');
+    signalerEvenement(slug, 'vue', { source: source === 'qr' || source === 'lien' ? source : null });
   }, [slug]);
   return null;
 }

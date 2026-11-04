@@ -2,22 +2,138 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 class Cabinet extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'nom', 'slug', 'type', 'telephone', 'email', 'adresse', 'ville', 'quartier',
+        'nom', 'slug', 'type', 'telephone', 'whatsapp', 'email', 'adresse', 'ville', 'quartier',
         'pays', 'logo_path', 'plan', 'essai_expire_at', 'actif',
         'latitude', 'longitude', 'description', 'langues_parlees',
         'accepte_urgences', 'accessible_pmr', 'site_web', 'facebook_url', 'instagram_url',
-        'visible_annuaire',
+        'visible_annuaire', 'statut_fiche',
     ];
+
+    public const STATUT_NON_REVENDIQUEE = 'non_revendiquee';
+
+    public const STATUT_EN_ATTENTE = 'en_attente';
+
+    public const STATUT_VERIFIEE = 'verifiee';
+
+    protected static function booted(): void
+    {
+        static::creating(function (Cabinet $cabinet) {
+            if (empty($cabinet->slug)) {
+                $cabinet->slug = static::genererSlug($cabinet->nom, $cabinet->ville);
+            }
+        });
+
+        // Les slugs de ville et de quartier alimentent les pages publiques
+        // « /specialite/ville/quartier » : on les garde synchronisés.
+        static::saving(function (Cabinet $cabinet) {
+            if ($cabinet->isDirty('ville') || ! $cabinet->exists) {
+                $cabinet->ville_slug = $cabinet->ville ? Str::slug($cabinet->ville) : null;
+            }
+            if ($cabinet->isDirty('quartier') || ! $cabinet->exists) {
+                $cabinet->quartier_slug = $cabinet->quartier ? Str::slug($cabinet->quartier) : null;
+            }
+        });
+    }
+
+    public static function genererSlug(string $nom, ?string $ville = null): string
+    {
+        $base = Str::slug(trim($nom.' '.($ville ?? ''))) ?: 'cabinet';
+        $slug = $base;
+
+        while (static::where('slug', $slug)->exists()) {
+            $slug = $base.'-'.Str::lower(Str::random(4));
+        }
+
+        return $slug;
+    }
+
+    /**
+     * Le numéro WhatsApp est stocké en chiffres seuls, au format
+     * international sans « + » (celui qu'attend un lien wa.me).
+     */
+    protected function whatsapp(): Attribute
+    {
+        return Attribute::make(
+            set: fn (?string $value) => $value ? (preg_replace('/\D+/', '', $value) ?: null) : null,
+        );
+    }
+
+    /**
+     * Indique si le cabinet est ouvert à l'instant, d'après ses horaires
+     * saisis en heure locale. Null si aucun horaire n'est renseigné.
+     */
+    public function estOuvert(?Carbon $moment = null): ?bool
+    {
+        $horaires = $this->relationLoaded('horaires') ? $this->horaires : $this->horaires()->get();
+
+        if ($horaires->isEmpty()) {
+            return null;
+        }
+
+        $moment = ($moment ?? now())->copy()->setTimezone(config('dokta.fuseau_horaire_local'));
+        $jour = $horaires->firstWhere('jour_semaine', $moment->dayOfWeek);
+
+        if (! $jour || $jour->ferme || ! $jour->heure_ouverture || ! $jour->heure_fermeture) {
+            return false;
+        }
+
+        $heure = $moment->format('H:i:s');
+
+        return substr($jour->heure_ouverture, 0, 8) <= $heure && $heure < substr($jour->heure_fermeture, 0, 8);
+    }
+
+    public function scopeVisiblesDansAnnuaire(Builder $query): Builder
+    {
+        return $query->where('actif', true)->where('visible_annuaire', true);
+    }
+
+    public function scopeOuvertsMaintenant(Builder $query, ?Carbon $moment = null): Builder
+    {
+        $moment = ($moment ?? now())->copy()->setTimezone(config('dokta.fuseau_horaire_local'));
+        $heure = $moment->format('H:i:s');
+
+        return $query->whereHas('horaires', function (Builder $q) use ($moment, $heure) {
+            $q->where('jour_semaine', $moment->dayOfWeek)
+                ->where('ferme', false)
+                ->where('heure_ouverture', '<=', $heure)
+                ->where('heure_fermeture', '>', $heure);
+        });
+    }
+
+    /**
+     * Remplace les horaires de la semaine (une entrée par jour fournie).
+     *
+     * @param  array<int, array{jour_semaine:int, heure_ouverture?:?string, heure_fermeture?:?string, ferme?:bool}>  $horaires
+     */
+    public function remplacerHoraires(array $horaires): void
+    {
+        foreach ($horaires as $horaire) {
+            CabinetHoraire::updateOrCreate(
+                ['cabinet_id' => $this->id, 'jour_semaine' => $horaire['jour_semaine']],
+                [
+                    'heure_ouverture' => $horaire['heure_ouverture'] ?? null,
+                    'heure_fermeture' => $horaire['heure_fermeture'] ?? null,
+                    'ferme' => $horaire['ferme'] ?? false,
+                ]
+            );
+        }
+
+        $this->unsetRelation('horaires');
+    }
 
     protected function casts(): array
     {
@@ -72,6 +188,16 @@ class Cabinet extends Model
     public function services(): HasMany
     {
         return $this->hasMany(CabinetService::class);
+    }
+
+    public function statistiquesJour(): HasMany
+    {
+        return $this->hasMany(CabinetStatistiqueJour::class);
+    }
+
+    public function demandesRevendication(): HasMany
+    {
+        return $this->hasMany(DemandeRevendication::class);
     }
 
     public function rafraichirNoteMoyenne(): void

@@ -273,6 +273,8 @@ class DatabaseSeeder extends Seeder
             'accessible_pmr' => true,
             'site_web' => 'https://cabinet-etoile.dokta.example',
             'visible_annuaire' => true,
+            'whatsapp' => '+237 690 12 34 56',
+            'statut_fiche' => Cabinet::STATUT_VERIFIEE,
         ]);
         $cabinet->specialites()->sync([$specialites[0]->id, $specialites[1]->id]);
         $cabinet->mutuelles()->sync([$mutuelles[0]->id, $mutuelles[1]->id]);
@@ -288,6 +290,36 @@ class DatabaseSeeder extends Seeder
         CabinetService::create(['cabinet_id' => $cabinet->id, 'nom' => 'Détartrage', 'prix_indicatif' => 15000, 'duree_minutes' => 30]);
         CabinetService::create(['cabinet_id' => $cabinet->id, 'nom' => 'Consultation de contrôle', 'prix_indicatif' => 10000, 'duree_minutes' => 20]);
         CabinetService::create(['cabinet_id' => $cabinet->id, 'nom' => 'Pose de couronne', 'prix_indicatif' => 85000, 'duree_minutes' => 60]);
+
+        // --- Annuaire V1 : fiches de démonstration créées par l'équipe DOKTIS,
+        // non revendiquées (noms fictifs). ---
+        $semaine = fn (string $ouverture, string $fermeture, ?string $samedi = null) => array_merge(
+            array_map(fn (int $jour) => ['jour_semaine' => $jour, 'heure_ouverture' => $ouverture, 'heure_fermeture' => $fermeture], [1, 2, 3, 4, 5]),
+            [['jour_semaine' => 6, 'heure_ouverture' => $samedi ? $ouverture : null, 'heure_fermeture' => $samedi, 'ferme' => $samedi === null]],
+            [['jour_semaine' => 0, 'ferme' => true]],
+        );
+
+        foreach ([
+            ['Centre Médical Les Manguiers', 'Douala', 'Akwa', [1, 3], '+237 699 00 11 22', $semaine('07:30', '19:00', '13:00'), true],
+            ['Cabinet Pédiatrique Bonamoussadi', 'Douala', 'Bonamoussadi', [3], null, $semaine('08:00', '17:00'), false],
+            ['Clinique Dentaire du Plateau', 'Yaoundé', 'Bastos', [0], '+237 677 55 44 33', $semaine('08:30', '18:00', '12:30'), false],
+            ['Cabinet de Gynécologie Mvog-Mbi', 'Yaoundé', 'Mvog-Mbi', [2], '+237 655 10 20 30', $semaine('09:00', '17:00'), false],
+        ] as [$nom, $ville, $quartier, $indexSpecialites, $whatsapp, $horaires, $urgences]) {
+            $fiche = Cabinet::create([
+                'nom' => $nom,
+                'type' => in_array(0, $indexSpecialites, true) ? 'dentaire' : 'medical',
+                'ville' => $ville,
+                'quartier' => $quartier,
+                'whatsapp' => $whatsapp,
+                'accepte_urgences' => $urgences,
+                'langues_parlees' => ['Français'],
+                'plan' => 'annuaire',
+                'statut_fiche' => Cabinet::STATUT_NON_REVENDIQUEE,
+                'visible_annuaire' => true,
+            ]);
+            $fiche->specialites()->sync(collect($indexSpecialites)->map(fn (int $i) => $specialites[$i]->id));
+            $fiche->remplacerHoraires($horaires);
+        }
 
         // --- DOKTA Patient : un compte patient réel, lié à un dossier existant ---
         $comptePatient = PatientAccount::create([

@@ -30,6 +30,7 @@ class ParametresController extends Controller
             'nom' => ['sometimes', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'telephone' => ['nullable', 'string', 'max:50'],
+            'whatsapp' => ['nullable', 'string', 'regex:/^\+?[0-9 ().-]{8,25}$/'],
             'email' => ['nullable', 'email', 'max:255'],
             'adresse' => ['nullable', 'string', 'max:255'],
             'ville' => ['nullable', 'string', 'max:255'],
@@ -67,26 +68,10 @@ class ParametresController extends Controller
      */
     public function updateHoraires(Request $request)
     {
-        $data = $request->validate([
-            'horaires' => ['required', 'array', 'size:7'],
-            'horaires.*.jour_semaine' => ['required', 'integer', 'min:0', 'max:6'],
-            'horaires.*.heure_ouverture' => ['nullable', 'date_format:H:i'],
-            'horaires.*.heure_fermeture' => ['nullable', 'date_format:H:i'],
-            'horaires.*.ferme' => ['sometimes', 'boolean'],
-        ]);
+        $data = $request->validate(ReglesHoraires::regles(requis: true));
 
         $cabinetId = $request->user()->cabinet_id;
-
-        foreach ($data['horaires'] as $horaire) {
-            CabinetHoraire::updateOrCreate(
-                ['cabinet_id' => $cabinetId, 'jour_semaine' => $horaire['jour_semaine']],
-                [
-                    'heure_ouverture' => $horaire['heure_ouverture'] ?? null,
-                    'heure_fermeture' => $horaire['heure_fermeture'] ?? null,
-                    'ferme' => $horaire['ferme'] ?? false,
-                ]
-            );
-        }
+        Cabinet::findOrFail($cabinetId)->remplacerHoraires($data['horaires']);
 
         return response()->json(CabinetHoraire::where('cabinet_id', $cabinetId)->orderBy('jour_semaine')->get());
     }

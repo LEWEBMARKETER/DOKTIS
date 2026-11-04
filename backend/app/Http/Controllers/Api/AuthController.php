@@ -7,9 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Cabinet;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -23,6 +21,9 @@ class AuthController extends Controller
             'cabinet_nom' => ['required', 'string', 'max:255'],
             'cabinet_type' => ['nullable', 'in:dentaire,medical,mixte'],
             'cabinet_telephone' => ['nullable', 'string', 'max:50'],
+            'cabinet_whatsapp' => ['nullable', 'string', 'regex:/^\+?[0-9 ().-]{8,25}$/'],
+            'cabinet_ville' => ['nullable', 'string', 'max:255'],
+            'cabinet_quartier' => ['nullable', 'string', 'max:255'],
             'admin_name' => ['required', 'string', 'max:255'],
             'admin_email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'admin_password' => ['required', 'string', 'min:8'],
@@ -30,9 +31,15 @@ class AuthController extends Controller
 
         $cabinet = Cabinet::create([
             'nom' => $data['cabinet_nom'],
-            'slug' => Str::slug($data['cabinet_nom']).'-'.Str::lower(Str::random(6)),
             'type' => $data['cabinet_type'] ?? 'mixte',
             'telephone' => $data['cabinet_telephone'] ?? null,
+            'whatsapp' => $data['cabinet_whatsapp'] ?? null,
+            'ville' => $data['cabinet_ville'] ?? null,
+            'quartier' => $data['cabinet_quartier'] ?? null,
+            // Une inscription spontanée n'apparaît dans l'annuaire qu'après
+            // validation par l'équipe DOKTIS.
+            'statut_fiche' => Cabinet::STATUT_EN_ATTENTE,
+            'visible_annuaire' => false,
             'plan' => 'essai',
             'essai_expire_at' => now()->addDays(30),
         ]);

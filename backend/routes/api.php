@@ -3,13 +3,18 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AvisController;
 use App\Http\Controllers\Api\CabinetController;
-use App\Http\Controllers\Api\ConsultationController;
 use App\Http\Controllers\Api\ComptabiliteController;
+use App\Http\Controllers\Api\ConsultationController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DepenseController;
 use App\Http\Controllers\Api\DevisController;
+use App\Http\Controllers\Api\Directory\CabinetController as DirectoryCabinetController;
+use App\Http\Controllers\Api\Directory\LocaliteController as DirectoryLocaliteController;
+use App\Http\Controllers\Api\Directory\RevendicationController as DirectoryRevendicationController;
+use App\Http\Controllers\Api\Directory\SpecialiteController as DirectorySpecialiteController;
 use App\Http\Controllers\Api\DocumentController;
 use App\Http\Controllers\Api\FactureController;
+use App\Http\Controllers\Api\FicheStatistiquesController;
 use App\Http\Controllers\Api\MessagerieController;
 use App\Http\Controllers\Api\OrdonnanceController;
 use App\Http\Controllers\Api\OrdonnanceModeleController;
@@ -17,21 +22,20 @@ use App\Http\Controllers\Api\PaiementController;
 use App\Http\Controllers\Api\ParametresController;
 use App\Http\Controllers\Api\Patient\AuthController as PatientAuthController;
 use App\Http\Controllers\Api\Patient\AvisController as PatientAvisController;
-use App\Http\Controllers\Api\Patient\RendezVousController as PatientRendezVousController;
 use App\Http\Controllers\Api\Patient\DossierController as PatientDossierController;
 use App\Http\Controllers\Api\Patient\MessagerieController as PatientMessagerieController;
-use App\Http\Controllers\Api\Directory\CabinetController as DirectoryCabinetController;
-use App\Http\Controllers\Api\Directory\SpecialiteController as DirectorySpecialiteController;
+use App\Http\Controllers\Api\Patient\RendezVousController as PatientRendezVousController;
 use App\Http\Controllers\Api\PatientController;
 use App\Http\Controllers\Api\PlanTraitementController;
 use App\Http\Controllers\Api\RendezVousController;
 use App\Http\Controllers\Api\SchemaDentaireController;
-use App\Http\Controllers\Api\SupportController;
 use App\Http\Controllers\Api\SuperAdmin\AbonnementController;
 use App\Http\Controllers\Api\SuperAdmin\IncidentController;
 use App\Http\Controllers\Api\SuperAdmin\JournalController;
+use App\Http\Controllers\Api\SuperAdmin\RevendicationController as SuperAdminRevendicationController;
 use App\Http\Controllers\Api\SuperAdmin\StatistiquesController as SuperAdminStatistiquesController;
 use App\Http\Controllers\Api\SuperAdmin\TicketController as SuperAdminTicketController;
+use App\Http\Controllers\Api\SupportController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -41,51 +45,62 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-Route::post('/auth/register-cabinet', [AuthController::class, 'registerCabinet']);
-Route::post('/auth/login', [AuthController::class, 'login']);
+Route::post('/auth/register-cabinet', [AuthController::class, 'registerCabinet'])->middleware('throttle:10,1');
+Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:10,1');
 
 Route::middleware(['auth:sanctum', 'staff'])->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/me', [AuthController::class, 'me']);
 
-    Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
+    /*
+     * Module SaaS (DOKTA Office) : gelé en V1, réactivé en V2 via DOKTA_MODULE_SAAS.
+     */
+    Route::middleware('module:saas')->group(function () {
+        Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
 
-    Route::apiResource('patients', PatientController::class);
-    Route::get('patients/{patient}/schema-dentaire', [SchemaDentaireController::class, 'index']);
-    Route::get('patients/{patient}/schema-dentaire/historique', [SchemaDentaireController::class, 'historique']);
-    Route::post('patients/{patient}/schema-dentaire', [SchemaDentaireController::class, 'store']);
-    Route::apiResource('rendez-vous', RendezVousController::class)->parameters(['rendez-vous' => 'rendezVous']);
-    Route::post('rendez-vous/{rendezVous}/reprogrammer', [RendezVousController::class, 'reprogrammer']);
-    Route::apiResource('consultations', ConsultationController::class);
+        Route::apiResource('patients', PatientController::class);
+        Route::get('patients/{patient}/schema-dentaire', [SchemaDentaireController::class, 'index']);
+        Route::get('patients/{patient}/schema-dentaire/historique', [SchemaDentaireController::class, 'historique']);
+        Route::post('patients/{patient}/schema-dentaire', [SchemaDentaireController::class, 'store']);
+        Route::apiResource('rendez-vous', RendezVousController::class)->parameters(['rendez-vous' => 'rendezVous']);
+        Route::post('rendez-vous/{rendezVous}/reprogrammer', [RendezVousController::class, 'reprogrammer']);
+        Route::apiResource('consultations', ConsultationController::class);
 
-    Route::apiResource('plans-traitement', PlanTraitementController::class)->parameters(['plans-traitement' => 'planTraitement']);
-    Route::patch('plans-traitement/{planTraitement}/etapes/{etape}', [PlanTraitementController::class, 'majEtape']);
+        Route::apiResource('plans-traitement', PlanTraitementController::class)->parameters(['plans-traitement' => 'planTraitement']);
+        Route::patch('plans-traitement/{planTraitement}/etapes/{etape}', [PlanTraitementController::class, 'majEtape']);
 
-    Route::apiResource('documents', DocumentController::class)->only(['index', 'store', 'destroy']);
+        Route::apiResource('documents', DocumentController::class)->only(['index', 'store', 'destroy']);
 
-    Route::apiResource('ordonnance-modeles', OrdonnanceModeleController::class)->except('show')->parameters(['ordonnance-modeles' => 'ordonnanceModele']);
-    Route::apiResource('ordonnances', OrdonnanceController::class)->only(['index', 'store', 'show', 'destroy']);
+        Route::apiResource('ordonnance-modeles', OrdonnanceModeleController::class)->except('show')->parameters(['ordonnance-modeles' => 'ordonnanceModele']);
+        Route::apiResource('ordonnances', OrdonnanceController::class)->only(['index', 'store', 'show', 'destroy']);
 
-    Route::apiResource('factures', FactureController::class);
-    Route::get('factures/{facture}/paiements', [PaiementController::class, 'index']);
-    Route::post('factures/{facture}/paiements', [PaiementController::class, 'store']);
-    Route::delete('factures/{facture}/paiements/{paiement}', [PaiementController::class, 'destroy']);
+        Route::apiResource('factures', FactureController::class);
+        Route::get('factures/{facture}/paiements', [PaiementController::class, 'index']);
+        Route::post('factures/{facture}/paiements', [PaiementController::class, 'store']);
+        Route::delete('factures/{facture}/paiements/{paiement}', [PaiementController::class, 'destroy']);
 
-    Route::apiResource('devis', DevisController::class)->parameters(['devis' => 'devis']);
-    Route::post('devis/{devis}/convertir', [DevisController::class, 'convertir']);
+        Route::apiResource('devis', DevisController::class)->parameters(['devis' => 'devis']);
+        Route::post('devis/{devis}/convertir', [DevisController::class, 'convertir']);
 
-    Route::apiResource('depenses', DepenseController::class)->only(['index', 'store', 'update', 'destroy']);
-    Route::get('comptabilite/journal-caisse', [ComptabiliteController::class, 'journal']);
-    Route::get('comptabilite/journal-caisse/export', [ComptabiliteController::class, 'exportCsv']);
+        Route::apiResource('depenses', DepenseController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::get('comptabilite/journal-caisse', [ComptabiliteController::class, 'journal']);
+        Route::get('comptabilite/journal-caisse/export', [ComptabiliteController::class, 'exportCsv']);
+    });
 
     Route::get('users', [UserController::class, 'index']);
 
-    Route::get('avis', [AvisController::class, 'index']);
-    Route::patch('avis/{avi}', [AvisController::class, 'repondre']);
+    // Avis et messagerie dépendent des comptes DOKTA Patient.
+    Route::middleware('module:patient')->group(function () {
+        Route::get('avis', [AvisController::class, 'index']);
+        Route::patch('avis/{avi}', [AvisController::class, 'repondre']);
 
-    Route::get('conversations', [MessagerieController::class, 'index']);
-    Route::get('conversations/{conversation}/messages', [MessagerieController::class, 'messages']);
-    Route::post('conversations/{conversation}/messages', [MessagerieController::class, 'envoyer']);
+        Route::get('conversations', [MessagerieController::class, 'index']);
+        Route::get('conversations/{conversation}/messages', [MessagerieController::class, 'messages']);
+        Route::post('conversations/{conversation}/messages', [MessagerieController::class, 'envoyer']);
+    });
+
+    // Statistiques anonymes de la fiche annuaire (vues, clics WhatsApp).
+    Route::get('fiche/statistiques', [FicheStatistiquesController::class, 'show']);
 
     Route::get('support/tickets', [SupportController::class, 'index']);
     Route::post('support/tickets', [SupportController::class, 'store']);
@@ -109,7 +124,12 @@ Route::middleware(['auth:sanctum', 'staff'])->group(function () {
     });
 
     Route::middleware('role:super_admin')->group(function () {
-        Route::apiResource('cabinets', CabinetController::class)->only(['index', 'show', 'update']);
+        Route::apiResource('cabinets', CabinetController::class)->only(['index', 'store', 'show', 'update']);
+        Route::put('cabinets/{cabinet}/horaires', [CabinetController::class, 'updateHoraires']);
+
+        Route::get('super-admin/revendications', [SuperAdminRevendicationController::class, 'index']);
+        Route::post('super-admin/revendications/{demande}/approuver', [SuperAdminRevendicationController::class, 'approuver']);
+        Route::post('super-admin/revendications/{demande}/rejeter', [SuperAdminRevendicationController::class, 'rejeter']);
 
         Route::get('super-admin/statistiques', [SuperAdminStatistiquesController::class, 'index']);
 
@@ -134,9 +154,9 @@ Route::middleware(['auth:sanctum', 'staff'])->group(function () {
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('patient')->group(function () {
-    Route::post('/auth/register', [PatientAuthController::class, 'register']);
-    Route::post('/auth/login', [PatientAuthController::class, 'login']);
+Route::prefix('patient')->middleware('module:patient')->group(function () {
+    Route::post('/auth/register', [PatientAuthController::class, 'register'])->middleware('throttle:10,1');
+    Route::post('/auth/login', [PatientAuthController::class, 'login'])->middleware('throttle:10,1');
 
     Route::middleware(['auth:sanctum', 'patient.account'])->group(function () {
         Route::post('/auth/logout', [PatientAuthController::class, 'logout']);
@@ -172,6 +192,16 @@ Route::prefix('patient')->group(function () {
 
 Route::prefix('directory')->group(function () {
     Route::get('/cabinets', [DirectoryCabinetController::class, 'index']);
-    Route::get('/cabinets/{cabinet}', [DirectoryCabinetController::class, 'show']);
+    Route::get('/cabinets/{identifiant}', [DirectoryCabinetController::class, 'show']);
     Route::get('/specialites', [DirectorySpecialiteController::class, 'index']);
+    Route::get('/localites', [DirectoryLocaliteController::class, 'index']);
+    Route::get('/plan-du-site', [DirectoryLocaliteController::class, 'planDuSite']);
+
+    // Compteurs anonymes : une vue de fiche ou un clic vers WhatsApp / téléphone.
+    Route::post('/cabinets/{identifiant}/evenements', [DirectoryCabinetController::class, 'evenement'])
+        ->middleware('throttle:60,1');
+
+    // Un praticien demande à gérer une fiche créée par l'équipe DOKTIS.
+    Route::post('/cabinets/{identifiant}/revendications', [DirectoryRevendicationController::class, 'store'])
+        ->middleware('throttle:5,1');
 });

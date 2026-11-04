@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Middleware\EnsureModuleEnabled;
+use App\Http\Middleware\EnsurePatientAccount;
+use App\Http\Middleware\EnsureStaffUser;
+use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -19,9 +23,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-            'role' => \App\Http\Middleware\EnsureUserHasRole::class,
-            'staff' => \App\Http\Middleware\EnsureStaffUser::class,
-            'patient.account' => \App\Http\Middleware\EnsurePatientAccount::class,
+            'role' => EnsureUserHasRole::class,
+            'staff' => EnsureStaffUser::class,
+            'patient.account' => EnsurePatientAccount::class,
+            'module' => EnsureModuleEnabled::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

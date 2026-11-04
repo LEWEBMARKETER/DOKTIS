@@ -28,7 +28,7 @@ Plateforme santé en deux temps :
 | SaaS (DOKTA Office) | `DOKTA_MODULE_SAAS` | `NEXT_PUBLIC_DOKTA_MODULE_SAAS` | désactivé |
 | Patient (comptes, dossier, messagerie, avis) | `DOKTA_MODULE_PATIENT` | `NEXT_PUBLIC_DOKTA_MODULE_PATIENT` | désactivé |
 
-Un module désactivé répond 404 côté API et disparaît du menu de l'espace praticien. Le fuseau utilisé pour « ouvert maintenant » est réglé par `DOKTA_FUSEAU_LOCAL` (par défaut `Africa/Douala`).
+Un module désactivé répond 404 côté API et disparaît du menu de l'espace praticien. Le pays de lancement est le **Gabon** : pays par défaut des fiches (`DOKTA_PAYS`), fuseau de « ouvert maintenant » (`DOKTA_FUSEAU_LOCAL`, par défaut `Africa/Libreville`) et indicatif ajouté aux numéros saisis au format national (`DOKTA_INDICATIF_PAYS`, par défaut `241` : `077 12 34 56` devient `+241 77 12 34 56`).
 
 ## Architecture
 
@@ -70,7 +70,7 @@ php artisan serve
 
 Pour le temps réel, lancer en parallèle : `php artisan reverb:start`.
 
-Le seeder crée un cabinet de démonstration vérifié, quatre fiches non revendiquées (Douala et Yaoundé, noms fictifs) et les comptes suivants :
+Le seeder crée un cabinet de démonstration vérifié, quatre fiches non revendiquées (Libreville, Port-Gentil et Franceville, noms fictifs) et les comptes suivants :
 
 | Rôle | Email | Mot de passe |
 |---|---|---|
@@ -84,7 +84,7 @@ Ainsi qu'un compte **DOKTA Patient** de démonstration (utilisable seulement ave
 
 | Email ou téléphone | Mot de passe |
 |---|---|
-| sonia@patient.dokta / 690112233 | password |
+| sonia@patient.dokta / 077112233 | password |
 
 ### Frontend (Next.js)
 

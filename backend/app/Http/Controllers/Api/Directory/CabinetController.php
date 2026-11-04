@@ -137,7 +137,7 @@ class CabinetController extends Controller
     }
 
     /**
-     * Accepte un slug (« bonapriso ») ou un libellé (« Bonapriso »).
+     * Accepte un slug (« nzeng-ayong ») ou un libellé (« Nzeng-Ayong »).
      */
     private function filtrerParLieu(Builder $query, string $champ, string $valeur): void
     {

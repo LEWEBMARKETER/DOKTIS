@@ -24,7 +24,7 @@ class RevendicationTest extends TestCase
         return $this->postJson("/api/directory/cabinets/{$cabinet->slug}/revendications", [
             'nom' => 'Dr Ngo Bassa',
             'email' => 'ngo.bassa@test.dokta',
-            'telephone' => '690112233',
+            'telephone' => '077112233',
             'fonction' => 'Chirurgien-dentiste',
             'password' => 'motdepasse123',
             ...$donnees,
@@ -37,18 +37,18 @@ class RevendicationTest extends TestCase
 
         $reponse = $this->actingAs($this->superAdmin())->postJson('/api/cabinets', [
             'nom' => 'Cabinet Dentaire du Littoral',
-            'ville' => 'Douala',
-            'quartier' => 'Akwa',
-            'whatsapp' => '+237 690 11 22 33',
+            'ville' => 'Libreville',
+            'quartier' => 'Glass',
+            'whatsapp' => '+241 77 11 22 33',
             'specialite_ids' => [$specialite->id],
             'horaires' => [['jour_semaine' => 1, 'heure_ouverture' => '08:00', 'heure_fermeture' => '17:00']],
         ]);
 
         $reponse->assertCreated()
             ->assertJsonPath('statut_fiche', 'non_revendiquee')
-            ->assertJsonPath('slug', 'cabinet-dentaire-du-littoral-douala');
+            ->assertJsonPath('slug', 'cabinet-dentaire-du-littoral-libreville');
 
-        $this->getJson('/api/directory/cabinets/cabinet-dentaire-du-littoral-douala')
+        $this->getJson('/api/directory/cabinets/cabinet-dentaire-du-littoral-libreville')
             ->assertOk()
             ->assertJsonPath('statut_fiche', 'non_revendiquee')
             ->assertJsonCount(1, 'horaires');

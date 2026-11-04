@@ -73,7 +73,7 @@ export function FormulaireRevendication({ slug }: { slug: string }) {
         </label>
         <label className="flex flex-col gap-1 text-sm">
           <span className="font-medium text-slate-700">Téléphone</span>
-          <input id="rev-telephone" type="tel" required value={form.telephone} onChange={maj('telephone')} placeholder="+237 6XX XX XX XX" className={CHAMP} autoComplete="tel" />
+          <input id="rev-telephone" type="tel" required value={form.telephone} onChange={maj('telephone')} placeholder="+241 77 12 34 56" className={CHAMP} autoComplete="tel" />
           {aide('telephone')}
         </label>
         <label className="flex flex-col gap-1 text-sm sm:col-span-2">

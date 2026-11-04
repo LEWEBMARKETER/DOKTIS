@@ -20,7 +20,7 @@ export function SearchForm({ specialites, localites, valeurs = {}, compact = fal
             id="recherche-q"
             name="q"
             defaultValue={valeurs.q}
-            placeholder="ex. détartrage, Dr Ngo, pédiatre"
+            placeholder="ex. détartrage, Dr Nzé, pédiatre"
             className="rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-teal-600 focus:outline-none focus:ring-1 focus:ring-teal-600"
           />
         </label>

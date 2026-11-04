@@ -16,7 +16,7 @@ class PatientAuthTest extends TestCase
             'nom' => 'Kamdem',
             'prenom' => 'Sonia',
             'email' => 'sonia@patient.dokta',
-            'telephone' => '690112233',
+            'telephone' => '077112233',
             'password' => 'password123',
         ]);
 
@@ -26,12 +26,12 @@ class PatientAuthTest extends TestCase
 
     public function test_un_patient_peut_se_connecter_avec_email_ou_telephone(): void
     {
-        PatientAccount::factory()->create(['email' => 'a@patient.dokta', 'telephone' => '690000001']);
+        PatientAccount::factory()->create(['email' => 'a@patient.dokta', 'telephone' => '077000001']);
 
         $this->postJson('/api/patient/auth/login', ['identifiant' => 'a@patient.dokta', 'password' => 'password'])
             ->assertOk();
 
-        $this->postJson('/api/patient/auth/login', ['identifiant' => '690000001', 'password' => 'password'])
+        $this->postJson('/api/patient/auth/login', ['identifiant' => '077000001', 'password' => 'password'])
             ->assertOk();
     }
 

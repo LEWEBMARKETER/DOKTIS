@@ -25,8 +25,8 @@ class AnnuaireV1Test extends TestCase
         return Cabinet::factory()->create([
             'visible_annuaire' => true,
             'actif' => true,
-            'ville' => 'Douala',
-            'quartier' => 'Bonamoussadi',
+            'ville' => 'Libreville',
+            'quartier' => 'Nzeng-Ayong',
             ...$attributs,
         ]);
     }
@@ -44,33 +44,35 @@ class AnnuaireV1Test extends TestCase
 
     public function test_les_slugs_de_ville_et_quartier_sont_calcules_automatiquement(): void
     {
-        $cabinet = Cabinet::create(['nom' => 'Clinique Les Palmiers', 'ville' => 'Yaoundé', 'quartier' => 'Bastos']);
+        $cabinet = Cabinet::create(['nom' => 'Clinique Les Palmiers', 'ville' => 'Port-Gentil', 'quartier' => 'Grand Village']);
 
-        $this->assertSame('yaounde', $cabinet->ville_slug);
-        $this->assertSame('bastos', $cabinet->quartier_slug);
-        $this->assertSame('clinique-les-palmiers-yaounde', $cabinet->slug);
+        $this->assertSame('port-gentil', $cabinet->ville_slug);
+        $this->assertSame('grand-village', $cabinet->quartier_slug);
+        $this->assertSame('clinique-les-palmiers-port-gentil', $cabinet->slug);
+        $this->assertSame('Gabon', $cabinet->pays);
 
-        $cabinet->update(['quartier' => 'Mvog-Mbi']);
-        $this->assertSame('mvog-mbi', $cabinet->fresh()->quartier_slug);
+        $cabinet->update(['quartier' => 'Château']);
+        $this->assertSame('chateau', $cabinet->fresh()->quartier_slug);
     }
 
-    public function test_le_numero_whatsapp_est_normalise_en_chiffres(): void
+    public function test_le_numero_whatsapp_est_normalise_au_format_international(): void
     {
-        $cabinet = $this->cabinetVisible(['whatsapp' => '+237 6 90 11 22 33']);
-
-        $this->assertSame('237690112233', $cabinet->fresh()->whatsapp);
+        $this->assertSame('24177123456', $this->cabinetVisible(['whatsapp' => '+241 77 12 34 56'])->fresh()->whatsapp);
+        $this->assertSame('24177123456', $this->cabinetVisible(['whatsapp' => '077 12 34 56'])->fresh()->whatsapp);
+        $this->assertSame('24166123456', $this->cabinetVisible(['whatsapp' => '00241 66-12-34-56'])->fresh()->whatsapp);
+        $this->assertNull($this->cabinetVisible(['whatsapp' => ''])->fresh()->whatsapp);
     }
 
     public function test_la_fiche_est_accessible_par_slug_sans_champs_internes(): void
     {
-        $cabinet = $this->cabinetVisible(['slug' => 'cabinet-etoile-douala', 'whatsapp' => '237690112233']);
+        $cabinet = $this->cabinetVisible(['slug' => 'cabinet-etoile-libreville', 'whatsapp' => '24177123456']);
 
-        $reponse = $this->getJson('/api/directory/cabinets/cabinet-etoile-douala');
+        $reponse = $this->getJson('/api/directory/cabinets/cabinet-etoile-libreville');
 
         $reponse->assertOk()
             ->assertJsonPath('id', $cabinet->id)
-            ->assertJsonPath('whatsapp', '237690112233')
-            ->assertJsonPath('ville_slug', 'douala')
+            ->assertJsonPath('whatsapp', '24177123456')
+            ->assertJsonPath('ville_slug', 'libreville')
             ->assertJsonMissingPath('plan')
             ->assertJsonMissingPath('essai_expire_at');
     }
@@ -78,19 +80,19 @@ class AnnuaireV1Test extends TestCase
     public function test_les_filtres_ville_et_quartier_acceptent_les_slugs(): void
     {
         $ici = $this->cabinetVisible();
-        $ailleurs = $this->cabinetVisible(['ville' => 'Yaoundé', 'quartier' => 'Bastos']);
+        $ailleurs = $this->cabinetVisible(['ville' => 'Franceville', 'quartier' => 'Potos']);
 
-        $ids = collect($this->getJson('/api/directory/cabinets?ville=douala&quartier=bonamoussadi')->json('data'))->pluck('id');
+        $ids = collect($this->getJson('/api/directory/cabinets?ville=libreville&quartier=nzeng-ayong')->json('data'))->pluck('id');
         $this->assertTrue($ids->contains($ici->id));
         $this->assertFalse($ids->contains($ailleurs->id));
 
-        $ids = collect($this->getJson('/api/directory/cabinets?ville=yaounde')->json('data'))->pluck('id');
+        $ids = collect($this->getJson('/api/directory/cabinets?ville=franceville')->json('data'))->pluck('id');
         $this->assertTrue($ids->contains($ailleurs->id));
     }
 
     public function test_le_filtre_ouvert_maintenant_utilise_lheure_locale(): void
     {
-        // Mercredi 4 novembre 2026, 09:30 à Douala (08:30 UTC).
+        // Mercredi 4 novembre 2026, 09:30 à Libreville (08:30 UTC).
         Carbon::setTestNow(Carbon::parse('2026-11-04 08:30:00', 'UTC'));
 
         $ouvert = $this->cabinetVisible();
@@ -134,28 +136,28 @@ class AnnuaireV1Test extends TestCase
     {
         $dentiste = Specialite::create(['nom' => 'Dentiste', 'slug' => 'dentiste']);
         $this->cabinetVisible()->specialites()->attach($dentiste);
-        $this->cabinetVisible(['quartier' => 'Akwa'])->specialites()->attach($dentiste);
-        $this->cabinetVisible(['visible_annuaire' => false, 'ville' => 'Kribi']);
+        $this->cabinetVisible(['quartier' => 'Glass'])->specialites()->attach($dentiste);
+        $this->cabinetVisible(['visible_annuaire' => false, 'ville' => 'Lambaréné']);
 
         $localites = $this->getJson('/api/directory/localites')->assertOk()->json();
         $this->assertCount(1, $localites);
-        $this->assertSame('douala', $localites[0]['slug']);
+        $this->assertSame('libreville', $localites[0]['slug']);
         $this->assertSame(2, $localites[0]['total']);
         $this->assertCount(2, $localites[0]['quartiers']);
 
         $plan = $this->getJson('/api/directory/plan-du-site')->assertOk()->json();
         $this->assertCount(2, $plan['cabinets']);
         $pages = collect($plan['pages']);
-        $this->assertTrue($pages->contains(fn ($p) => $p['specialite'] === 'dentiste' && $p['ville'] === 'douala' && $p['quartier'] === null && $p['total'] === 2));
-        $this->assertTrue($pages->contains(fn ($p) => $p['quartier'] === 'akwa' && $p['total'] === 1));
+        $this->assertTrue($pages->contains(fn ($p) => $p['specialite'] === 'dentiste' && $p['ville'] === 'libreville' && $p['quartier'] === null && $p['total'] === 2));
+        $this->assertTrue($pages->contains(fn ($p) => $p['quartier'] === 'glass' && $p['total'] === 1));
     }
 
     public function test_une_inscription_spontanee_reste_invisible_jusqua_validation(): void
     {
         $this->postJson('/api/auth/register-cabinet', [
             'cabinet_nom' => 'Cabinet Nouveau',
-            'cabinet_ville' => 'Douala',
-            'cabinet_whatsapp' => '+237 690 00 00 00',
+            'cabinet_ville' => 'Libreville',
+            'cabinet_whatsapp' => '066 00 00 00',
             'admin_name' => 'Dr Nouveau',
             'admin_email' => 'nouveau@test.dokta',
             'admin_password' => 'password123',
@@ -163,7 +165,7 @@ class AnnuaireV1Test extends TestCase
 
         $cabinet = Cabinet::where('nom', 'Cabinet Nouveau')->firstOrFail();
         $this->assertFalse($cabinet->visible_annuaire);
-        $this->assertSame('237690000000', $cabinet->whatsapp);
+        $this->assertSame('24166000000', $cabinet->whatsapp);
         $this->getJson("/api/directory/cabinets/{$cabinet->slug}")->assertNotFound();
     }
 }

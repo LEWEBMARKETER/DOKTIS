@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { api, ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { JOURS, ORDRE_JOURS, formatFCFA } from '@/lib/site';
+import { formaterNumero } from '@/lib/whatsapp';
 import { Badge, Button, Card, ErrorText, Field, Input, PageHeader, Textarea } from '@/components/ui';
 import type { FicheCabinet, Horaire, ServiceCabinet, Specialite } from '@/types/directory';
 
@@ -142,7 +143,7 @@ function FormulaireInformations({ fiche, onSaved }: { fiche: Parametres; onSaved
   const [form, setForm] = useState({
     nom: fiche.nom ?? '',
     description: fiche.description ?? '',
-    whatsapp: fiche.whatsapp ? `+${fiche.whatsapp}` : '',
+    whatsapp: fiche.whatsapp ? formaterNumero(fiche.whatsapp) : '',
     telephone: fiche.telephone ?? '',
     adresse: fiche.adresse ?? '',
     ville: fiche.ville ?? '',
@@ -178,7 +179,7 @@ function FormulaireInformations({ fiche, onSaved }: { fiche: Parametres; onSaved
         <div className="sm:col-span-2"><ErrorText>{erreur}</ErrorText></div>
         <Field label="Nom du cabinet"><Input id="fiche-nom" required value={form.nom} onChange={maj('nom')} /></Field>
         <Field label="Numéro WhatsApp (format international)">
-          <Input id="fiche-whatsapp" value={form.whatsapp} onChange={maj('whatsapp')} placeholder="+237 6XX XX XX XX" />
+          <Input id="fiche-whatsapp" value={form.whatsapp} onChange={maj('whatsapp')} placeholder="+241 77 12 34 56" />
         </Field>
         <Field label="Téléphone"><Input id="fiche-telephone" value={form.telephone} onChange={maj('telephone')} /></Field>
         <Field label="Adresse"><Input id="fiche-adresse" value={form.adresse} onChange={maj('adresse')} placeholder="Rue, repère" /></Field>

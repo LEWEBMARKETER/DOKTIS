@@ -27,12 +27,11 @@ export function lienWhatsApp(numero: string, message: string): string {
   return `https://wa.me/${numero.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
 }
 
-/** Affiche 237690123456 sous la forme +237 690 12 34 56. */
+/** Affiche 24177123456 sous la forme +241 77 12 34 56 (numéros gabonais à 8 chiffres après l'indicatif). */
 export function formaterNumero(numero: string): string {
   const chiffres = numero.replace(/\D/g, '');
-  if (chiffres.startsWith('237') && chiffres.length === 12) {
-    const n = chiffres.slice(3);
-    return `+237 ${n.slice(0, 3)} ${n.slice(3, 5)} ${n.slice(5, 7)} ${n.slice(7, 9)}`;
+  if (chiffres.startsWith('241') && chiffres.length === 11) {
+    return `+241 ${chiffres.slice(3).match(/../g)!.join(' ')}`;
   }
   return `+${chiffres}`;
 }

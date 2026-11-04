@@ -32,6 +32,8 @@ class Cabinet extends Model
     protected static function booted(): void
     {
         static::creating(function (Cabinet $cabinet) {
+            $cabinet->pays ??= config('dokta.pays');
+
             if (empty($cabinet->slug)) {
                 $cabinet->slug = static::genererSlug($cabinet->nom, $cabinet->ville);
             }
@@ -67,9 +69,30 @@ class Cabinet extends Model
      */
     protected function whatsapp(): Attribute
     {
-        return Attribute::make(
-            set: fn (?string $value) => $value ? (preg_replace('/\D+/', '', $value) ?: null) : null,
-        );
+        return Attribute::make(set: fn (?string $value) => static::numeroInternational($value));
+    }
+
+    /**
+     * « +241 77 12 34 56 », « 00241 77… » et « 077 12 34 56 » (format
+     * national gabonais à 9 chiffres) donnent tous « 24177123456 ».
+     */
+    public static function numeroInternational(?string $numero): ?string
+    {
+        $chiffres = preg_replace('/\D+/', '', (string) $numero);
+
+        if ($chiffres === '') {
+            return null;
+        }
+
+        if (str_starts_with($chiffres, '00')) {
+            return substr($chiffres, 2);
+        }
+
+        if (strlen($chiffres) === 9 && $chiffres[0] === '0') {
+            return config('dokta.indicatif_pays').substr($chiffres, 1);
+        }
+
+        return $chiffres;
     }
 
     /**

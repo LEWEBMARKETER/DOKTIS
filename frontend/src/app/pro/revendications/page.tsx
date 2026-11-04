@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { api, ApiError } from '@/lib/api';
+import { formaterNumero } from '@/lib/whatsapp';
 import { Badge, Button, Card, ErrorText, PageHeader, Select, Textarea } from '@/components/ui';
 
 interface Demande {
@@ -72,7 +73,7 @@ export default function RevendicationsPage() {
               <p className="text-sm text-slate-500">
                 {[d.cabinet.quartier, d.cabinet.ville].filter(Boolean).join(', ')}
                 {d.cabinet.telephone && ` · Tél. fiche : ${d.cabinet.telephone}`}
-                {d.cabinet.whatsapp && ` · WhatsApp fiche : +${d.cabinet.whatsapp}`}
+                {d.cabinet.whatsapp && ` · WhatsApp fiche : ${formaterNumero(d.cabinet.whatsapp)}`}
               </p>
             </div>
             <Badge tone={TONS[d.statut]}>{LIBELLES[d.statut]}</Badge>

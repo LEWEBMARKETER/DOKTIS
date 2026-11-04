@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api, ApiError } from '@/lib/api';
+import { formaterNumero } from '@/lib/whatsapp';
 import { Badge, Button, Card, ErrorText, Field, Input, Modal, PageHeader, Select, Textarea } from '@/components/ui';
 import type { Cabinet } from '@/types';
 import type { Specialite } from '@/types/directory';
@@ -94,7 +95,7 @@ export default function FichesAnnuairePage() {
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-slate-600">{c.whatsapp ? `+${c.whatsapp}` : '–'}</td>
+                  <td className="px-4 py-3 text-slate-600">{c.whatsapp ? formaterNumero(c.whatsapp) : '–'}</td>
                   <td className="px-4 py-3">
                     <Badge tone={c.visible_annuaire && c.actif ? 'green' : 'slate'}>{c.visible_annuaire && c.actif ? 'Publiée' : 'Masquée'}</Badge>
                   </td>
@@ -179,10 +180,10 @@ function NouvelleFiche({ open, onClose, onCreated }: { open: boolean; onClose: (
         <ErrorText>{erreur}</ErrorText>
         <Field label="Nom du cabinet"><Input id="nf-nom" required value={form.nom} onChange={maj('nom')} /></Field>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Ville"><Input id="nf-ville" required value={form.ville} onChange={maj('ville')} placeholder="Douala" /></Field>
-          <Field label="Quartier"><Input id="nf-quartier" value={form.quartier} onChange={maj('quartier')} placeholder="Akwa" /></Field>
+          <Field label="Ville"><Input id="nf-ville" required value={form.ville} onChange={maj('ville')} placeholder="Libreville" /></Field>
+          <Field label="Quartier"><Input id="nf-quartier" value={form.quartier} onChange={maj('quartier')} placeholder="Glass" /></Field>
           <Field label="Téléphone"><Input id="nf-telephone" value={form.telephone} onChange={maj('telephone')} /></Field>
-          <Field label="WhatsApp (international)"><Input id="nf-whatsapp" value={form.whatsapp} onChange={maj('whatsapp')} placeholder="+237 6XX XX XX XX" /></Field>
+          <Field label="WhatsApp (international)"><Input id="nf-whatsapp" value={form.whatsapp} onChange={maj('whatsapp')} placeholder="+241 77 12 34 56" /></Field>
           <Field label="Adresse"><Input id="nf-adresse" value={form.adresse} onChange={maj('adresse')} /></Field>
           <Field label="Type">
             <Select id="nf-type" value={form.type} onChange={maj('type')}>

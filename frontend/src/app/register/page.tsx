@@ -67,17 +67,17 @@ export default function RegisterPage() {
             </Select>
           </Field>
           <Field label="Téléphone du cabinet">
-            <Input value={form.cabinet_telephone} onChange={(e) => update('cabinet_telephone', e.target.value)} placeholder="+237 6XX XX XX XX" />
+            <Input value={form.cabinet_telephone} onChange={(e) => update('cabinet_telephone', e.target.value)} placeholder="+241 77 12 34 56" />
           </Field>
           <Field label="Numéro WhatsApp pour les demandes de rendez-vous">
-            <Input value={form.cabinet_whatsapp} onChange={(e) => update('cabinet_whatsapp', e.target.value)} placeholder="+237 6XX XX XX XX" />
+            <Input value={form.cabinet_whatsapp} onChange={(e) => update('cabinet_whatsapp', e.target.value)} placeholder="+241 77 12 34 56" />
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Ville">
-              <Input required value={form.cabinet_ville} onChange={(e) => update('cabinet_ville', e.target.value)} placeholder="Douala" />
+              <Input required value={form.cabinet_ville} onChange={(e) => update('cabinet_ville', e.target.value)} placeholder="Libreville" />
             </Field>
             <Field label="Quartier">
-              <Input value={form.cabinet_quartier} onChange={(e) => update('cabinet_quartier', e.target.value)} placeholder="Akwa" />
+              <Input value={form.cabinet_quartier} onChange={(e) => update('cabinet_quartier', e.target.value)} placeholder="Glass" />
             </Field>
           </div>
           <hr className="border-slate-200" />

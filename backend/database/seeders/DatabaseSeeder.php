@@ -44,17 +44,17 @@ class DatabaseSeeder extends Seeder
             'nom' => 'Cabinet Dentaire Étoile',
             'slug' => 'cabinet-dentaire-etoile',
             'type' => 'dentaire',
-            'telephone' => '+237 690 12 34 56',
+            'telephone' => '+241 77 12 34 56',
             'email' => 'contact@cabinet-etoile.dokta',
-            'adresse' => 'Avenue Kennedy',
-            'ville' => 'Douala',
+            'adresse' => 'Rue des Flamboyants',
+            'ville' => 'Libreville',
             'plan' => 'pro',
             'actif' => true,
         ]);
 
         $admin = User::create([
             'cabinet_id' => $cabinet->id,
-            'name' => 'Dr Amina Ngo',
+            'name' => 'Dr Aïcha Nzé',
             'email' => 'admin@cabinet-etoile.dokta',
             'password' => Hash::make('password'),
             'role' => RoleUtilisateur::Administrateur,
@@ -63,7 +63,7 @@ class DatabaseSeeder extends Seeder
 
         $medecin = User::create([
             'cabinet_id' => $cabinet->id,
-            'name' => 'Dr Paul Eto',
+            'name' => 'Dr Paul Moussavou',
             'email' => 'medecin@cabinet-etoile.dokta',
             'password' => Hash::make('password'),
             'role' => RoleUtilisateur::Medecin,
@@ -72,7 +72,7 @@ class DatabaseSeeder extends Seeder
 
         $secretaire = User::create([
             'cabinet_id' => $cabinet->id,
-            'name' => 'Chantal Biya',
+            'name' => 'Clarisse Ndong',
             'email' => 'secretaire@cabinet-etoile.dokta',
             'password' => Hash::make('password'),
             'role' => RoleUtilisateur::Secretaire,
@@ -80,7 +80,7 @@ class DatabaseSeeder extends Seeder
 
         $assistant = User::create([
             'cabinet_id' => $cabinet->id,
-            'name' => 'Jean Fotso',
+            'name' => 'Jean-Pierre Nzamba',
             'email' => 'assistant@cabinet-etoile.dokta',
             'password' => Hash::make('password'),
             'role' => RoleUtilisateur::Assistant,
@@ -260,21 +260,21 @@ class DatabaseSeeder extends Seeder
             'Ophtalmologue', 'Laboratoire', "Centre d'imagerie",
         ])->map(fn (string $nom) => Specialite::create(['nom' => $nom, 'slug' => Str::slug($nom)]));
 
-        $mutuelles = collect(['CNPS', 'Saham Assurance', 'Activa Assurance', 'Allianz Santé'])
+        $mutuelles = collect(['CNAMGS', 'NSIA Assurances', 'Ogar Assurances', 'ASCOMA Gabon'])
             ->map(fn (string $nom) => Mutuelle::create(['nom' => $nom]));
 
         // --- DOKTA Directory : fiche publique du cabinet démo ---
         $cabinet->update([
-            'quartier' => 'Bonapriso',
-            'latitude' => 4.0345,
-            'longitude' => 9.7043,
-            'description' => "Cabinet dentaire moderne au cœur de Douala, prise en charge des soins conservateurs, de l'orthodontie et de l'implantologie.",
-            'langues_parlees' => ['Français', 'Anglais'],
+            'quartier' => 'Glass',
+            'latitude' => 0.3990,
+            'longitude' => 9.4450,
+            'description' => "Cabinet dentaire moderne au cœur de Libreville, prise en charge des soins conservateurs, de l'orthodontie et de l'implantologie.",
+            'langues_parlees' => ['Français', 'Fang', 'Anglais'],
             'accepte_urgences' => true,
             'accessible_pmr' => true,
             'site_web' => 'https://cabinet-etoile.dokta.example',
             'visible_annuaire' => true,
-            'whatsapp' => '+237 690 12 34 56',
+            'whatsapp' => '+241 77 12 34 56',
             'statut_fiche' => Cabinet::STATUT_VERIFIEE,
         ]);
         $cabinet->specialites()->sync([$specialites[0]->id, $specialites[1]->id]);
@@ -301,10 +301,10 @@ class DatabaseSeeder extends Seeder
         );
 
         foreach ([
-            ['Centre Médical Les Manguiers', 'Douala', 'Akwa', [1, 3], '+237 699 00 11 22', $semaine('07:30', '19:00', '13:00'), true],
-            ['Cabinet Pédiatrique Bonamoussadi', 'Douala', 'Bonamoussadi', [3], null, $semaine('08:00', '17:00'), false],
-            ['Clinique Dentaire du Plateau', 'Yaoundé', 'Bastos', [0], '+237 677 55 44 33', $semaine('08:30', '18:00', '12:30'), false],
-            ['Cabinet de Gynécologie Mvog-Mbi', 'Yaoundé', 'Mvog-Mbi', [2], '+237 655 10 20 30', $semaine('09:00', '17:00'), false],
+            ['Centre Médical Les Manguiers', 'Libreville', 'Nzeng-Ayong', [1, 3], '+241 77 00 11 22', $semaine('07:30', '19:00', '13:00'), true],
+            ['Cabinet Pédiatrique de Louis', 'Libreville', 'Louis', [3], null, $semaine('08:00', '17:00'), false],
+            ['Clinique Dentaire du Littoral', 'Port-Gentil', 'Balise', [0], '+241 66 55 44 33', $semaine('08:30', '18:00', '12:30'), false],
+            ['Cabinet de Gynécologie de Potos', 'Franceville', 'Potos', [2], '+241 74 10 20 30', $semaine('09:00', '17:00'), false],
         ] as [$nom, $ville, $quartier, $indexSpecialites, $whatsapp, $horaires, $urgences]) {
             $fiche = Cabinet::create([
                 'nom' => $nom,
@@ -313,7 +313,7 @@ class DatabaseSeeder extends Seeder
                 'quartier' => $quartier,
                 'whatsapp' => $whatsapp,
                 'accepte_urgences' => $urgences,
-                'langues_parlees' => ['Français'],
+                'langues_parlees' => ['Français', 'Fang'],
                 'plan' => 'annuaire',
                 'statut_fiche' => Cabinet::STATUT_NON_REVENDIQUEE,
                 'visible_annuaire' => true,
@@ -324,10 +324,10 @@ class DatabaseSeeder extends Seeder
 
         // --- DOKTA Patient : un compte patient réel, lié à un dossier existant ---
         $comptePatient = PatientAccount::create([
-            'nom' => 'Kamdem',
+            'nom' => 'Mintsa',
             'prenom' => 'Sonia',
             'email' => 'sonia@patient.dokta',
-            'telephone' => '690112233',
+            'telephone' => '077112233',
             'password' => Hash::make('password'),
             'date_naissance' => '1994-03-12',
             'sexe' => 'F',

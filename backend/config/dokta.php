@@ -20,8 +20,13 @@ return [
         'patient' => (bool) env('DOKTA_MODULE_PATIENT', false),
     ],
 
-    // Fuseau utilisé pour « ouvert maintenant » (les horaires des cabinets
-    // sont saisis en heure locale).
-    'fuseau_horaire_local' => env('DOKTA_FUSEAU_LOCAL', 'Africa/Douala'),
+    // Pays de lancement : le Gabon. Fuseau utilisé pour « ouvert maintenant »
+    // (les horaires des cabinets sont saisis en heure locale).
+    'pays' => env('DOKTA_PAYS', 'Gabon'),
+    'fuseau_horaire_local' => env('DOKTA_FUSEAU_LOCAL', 'Africa/Libreville'),
+
+    // Indicatif ajouté aux numéros saisis au format national (077 12 34 56
+    // devient 24177123456, le format attendu par un lien wa.me).
+    'indicatif_pays' => env('DOKTA_INDICATIF_PAYS', '241'),
 
 ];

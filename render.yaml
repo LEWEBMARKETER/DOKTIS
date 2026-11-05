@@ -1,11 +1,16 @@
 # Blueprint Render de DOKTIS : une base PostgreSQL et deux services web,
 # tous à Frankfurt (région Render la plus proche du Gabon).
 # Mode d'emploi : docs/DEPLOIEMENT.md
+#
+# VERSION GRATUITE (essai) : plans « free ». Limites : services mis en veille
+# après ~15 min sans visite, base gratuite qui expire au bout d'environ un mois,
+# pas de réseau privé entrant (le site joint l'API par son adresse publique).
+# Pour la production, voir « Passer aux offres payantes » dans le guide.
 
 databases:
   - name: doktis-db
     region: frankfurt
-    plan: basic-256mb
+    plan: free
     databaseName: doktis
     user: doktis
     postgresMajorVersion: "16"
@@ -18,7 +23,7 @@ services:
     name: doktis-api
     runtime: docker
     region: frankfurt
-    plan: starter
+    plan: free
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     healthCheckPath: /up
@@ -83,7 +88,7 @@ services:
     name: doktis-web
     runtime: node
     region: frankfurt
-    plan: starter
+    plan: free
     rootDir: frontend
     buildCommand: npm ci && npm run build
     startCommand: npm start
@@ -97,12 +102,12 @@ services:
       # Le navigateur appelle /api sur le domaine du site ; Next.js relaie vers l'API.
       - key: NEXT_PUBLIC_API_URL
         value: /api
-      # Adresse privée de l'API (réseau interne Render), ex. « doktis-api:10000 ».
-      - key: API_HOSTPORT
-        fromService:
-          type: web
-          name: doktis-api
-          property: hostport
+      # Adresse publique de l'API, cible du relais /api. Les services gratuits ne
+      # reçoivent pas de trafic privé : on passe par l'adresse en onrender.com.
+      # Si Render attribue une autre adresse à doktis-api, la corriger ici.
+      # (Offres payantes : remplacer par API_HOSTPORT + fromService hostport.)
+      - key: API_ORIGIN
+        value: https://doktis-api.onrender.com
       - key: NEXT_PUBLIC_DOKTA_MODULE_SAAS
         value: "false"
       - key: NEXT_PUBLIC_DOKTA_MODULE_PATIENT

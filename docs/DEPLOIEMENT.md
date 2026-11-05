@@ -4,13 +4,32 @@ Le fichier [`render.yaml`](../render.yaml) décrit toute l'infrastructure. Rende
 
 | Élément | Produit Render | Rôle |
 |---|---|---|
-| `doktis-db` | Postgres (`basic-256mb`) | Base de données, accessible uniquement par le réseau privé |
-| `doktis-api` | Service web Docker (`starter`) | API Laravel (PHP 8.4), dossier `backend/` |
-| `doktis-web` | Service web Node (`starter`) | Site public, espace praticien et Super Admin (Next.js), dossier `frontend/` |
+| `doktis-db` | Postgres (`free`) | Base de données, accessible uniquement par le réseau privé |
+| `doktis-api` | Service web Docker (`free`) | API Laravel (PHP 8.4), dossier `backend/` |
+| `doktis-web` | Service web Node (`free`) | Site public, espace praticien et Super Admin (Next.js), dossier `frontend/` |
 
-Tout est à **Frankfurt**, la région Render la plus proche du Gabon. Coût indicatif : environ 20 $/mois (deux services web d'entrée de gamme et une petite base) ; à vérifier sur la page Tarification de Render.
+Tout est à **Frankfurt**, la région Render la plus proche du Gabon.
 
-Le navigateur n'appelle que le site : les requêtes `/api/...` sont relayées par Next.js vers l'API sur le réseau privé de Render. Il n'y a donc ni CORS ni adresse d'API à configurer.
+Le navigateur n'appelle que le site : les requêtes `/api/...` sont relayées par Next.js vers l'API. Il n'y a donc pas de CORS à configurer.
+
+### Version gratuite (actuelle) : à savoir
+- Les services gratuits **s'endorment après environ 15 minutes sans visite** : la page suivante met de longues secondes à s'afficher.
+- La **base gratuite expire au bout d'environ un mois**, avec ses données. Passer aux offres payantes avant d'y saisir de vraies fiches.
+- Un service gratuit ne reçoit pas de trafic par le réseau privé : le site joint donc l'API par son **adresse publique**, réglée dans `render.yaml` (`API_ORIGIN` = `https://doktis-api.onrender.com`). Si Render attribue une autre adresse au service `doktis-api` (nom déjà pris), corriger `API_ORIGIN` dans les variables de `doktis-web` puis relancer un déploiement du site.
+- La limitation du nombre de tentatives peut être moins précise qu'en version payante, selon la façon dont Render transmet l'adresse du visiteur.
+
+### Passer aux offres payantes (production)
+Environ 20 $/mois au total, à vérifier sur la page Tarification de Render. Dans `render.yaml` :
+1. `plan: basic-256mb` pour `doktis-db`, `plan: starter` pour `doktis-api` et `doktis-web` ;
+2. dans `doktis-web`, remplacer `API_ORIGIN` par l'adresse privée de l'API :
+   ```yaml
+   - key: API_HOSTPORT
+     fromService:
+       type: web
+       name: doktis-api
+       property: hostport
+   ```
+Une base gratuite ne se transforme pas toujours en base payante en gardant ses données : faire la bascule avant de saisir de vraies fiches.
 
 ## 1. Préparer le dépôt
 
@@ -60,7 +79,8 @@ Avec le compte Super Admin : **Fiches annuaire** → **Nouvelle fiche** pour cha
 - **Journaux** : chaque service a un onglet **Logs** (l'API y écrit ses erreurs, en clair).
 - **L'API ne démarre pas** : vérifier dans ses journaux le message affiché avant l'arrêt (connexion à la base, variable manquante).
 - **Le site affiche des pages vides** : vérifier que `doktis-api` est en état *Live*, puis ouvrir `/api/directory/specialites` sur le site. Les pages publiques se régénèrent toutes les 5 minutes.
-- **`API_HOSTPORT` refusé à l'import** : remplacer cette variable par `API_ORIGIN` = `http://doktis-api:10000` (adresse privée de l'API).
+- **Le site ne joint pas l'API** (pages vides, erreurs sur `/api/...`) : vérifier que `API_ORIGIN` de `doktis-web` correspond bien à l'adresse affichée par Render pour `doktis-api`, puis redéployer le site.
+- **Première visite très lente** : normal en version gratuite (réveil des services).
 
 ## Tester l'image de l'API en local
 

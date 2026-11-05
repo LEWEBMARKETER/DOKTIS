@@ -18,8 +18,10 @@ export default function PartagerPage() {
   const { user } = useAuth();
   const cabinet = user?.cabinet;
   const publiee = Boolean(cabinet?.visible_annuaire && cabinet.statut_fiche !== 'en_attente');
-  const lien = cabinet ? `${SITE_URL}/cabinet/${cabinet.slug}?source=lien` : '';
-  const lienQr = cabinet ? `${SITE_URL}/cabinet/${cabinet.slug}?source=qr` : '';
+  // Adresse publique : celle de la configuration, sinon celle de la page ouverte.
+  const base = SITE_URL.includes('localhost') && typeof window !== 'undefined' ? window.location.origin : SITE_URL;
+  const lien = cabinet ? `${base}/cabinet/${cabinet.slug}?source=lien` : '';
+  const lienQr = cabinet ? `${base}/cabinet/${cabinet.slug}?source=qr` : '';
   const [qr, setQr] = useState<string | null>(null);
   const [copie, setCopie] = useState(false);
 
@@ -93,7 +95,7 @@ export default function PartagerPage() {
             <div className="h-56 w-56 animate-pulse rounded bg-slate-100" />
           )}
           <p className="text-sm text-slate-700">Scannez ce code avec l&apos;appareil photo de votre téléphone, choisissez un créneau et envoyez votre demande.</p>
-          <p className="break-all text-xs text-slate-500">{SITE_URL.replace(/^https?:\/\//, '')}/cabinet/{cabinet.slug}</p>
+          <p className="break-all text-xs text-slate-500">{base.replace(/^https?:\/\//, '')}/cabinet/{cabinet.slug}</p>
         </div>
       </Card>
     </div>

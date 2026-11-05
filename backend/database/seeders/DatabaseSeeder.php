@@ -257,13 +257,11 @@ class DatabaseSeeder extends Seeder
         Collection $patients,
     ): void {
         // --- Référentiels partagés par tous les cabinets ---
-        $specialites = collect([
-            'Cabinet dentaire', 'Médecin généraliste', 'Gynécologue', 'Pédiatre',
-            'Ophtalmologue', 'Laboratoire', "Centre d'imagerie",
-        ])->map(fn (string $nom) => Specialite::create(['nom' => $nom, 'slug' => Str::slug($nom)]));
-
-        $mutuelles = collect(['CNAMGS', 'NSIA Assurances', 'Ogar Assurances', 'ASCOMA Gabon'])
-            ->map(fn (string $nom) => Mutuelle::create(['nom' => $nom]));
+        $this->call(ReferentielSeeder::class);
+        $specialites = collect(ReferentielSeeder::SPECIALITES)
+            ->map(fn (string $nom) => Specialite::where('slug', Str::slug($nom))->firstOrFail());
+        $mutuelles = collect(ReferentielSeeder::ASSUREURS)
+            ->map(fn (string $nom) => Mutuelle::where('nom', $nom)->firstOrFail());
 
         // --- DOKTA Directory : fiche publique du cabinet démo ---
         $cabinet->update([

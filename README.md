@@ -33,6 +33,10 @@ Plateforme santé en deux temps :
 
 Un module désactivé répond 404 côté API et disparaît du menu de l'espace praticien. Le pays de lancement est le **Gabon** : pays par défaut des fiches (`DOKTA_PAYS`), fuseau de « ouvert maintenant » (`DOKTA_FUSEAU_LOCAL`, par défaut `Africa/Libreville`) et indicatif ajouté aux numéros saisis au format national (`DOKTA_INDICATIF_PAYS`, par défaut `241` : `077 12 34 56` devient `+241 77 12 34 56`).
 
+## Mise en ligne
+
+La plateforme se déploie sur **Render** grâce au blueprint [`render.yaml`](render.yaml) : une base PostgreSQL, l'API Laravel (Docker, PHP 8.4) et le site Next.js, à Frankfurt. Le site relaie `/api` vers l'API par le réseau privé de Render. Mode d'emploi pas à pas : [docs/DEPLOIEMENT.md](docs/DEPLOIEMENT.md).
+
 ## Architecture
 
 - **Frontend** (`frontend/`) : Next.js (App Router) + TypeScript + Tailwind CSS. Site public rendu côté serveur (régénéré toutes les 5 minutes) et espace praticien sous `/pro`.

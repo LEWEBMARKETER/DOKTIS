@@ -22,6 +22,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ['middleware' => ['auth:sanctum']],
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Derrière le proxy HTTPS de Render (et le site Next.js qui relaie
+        // /api) : on fait confiance aux en-têtes X-Forwarded-* pour connaître
+        // le protocole et l'adresse IP réelle du visiteur (limitation de débit).
+        $middleware->trustProxies(at: '*');
+
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
             'staff' => EnsureStaffUser::class,

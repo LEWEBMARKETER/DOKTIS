@@ -29,4 +29,12 @@ return [
     // devient 24177123456, le format attendu par un lien wa.me).
     'indicatif_pays' => env('DOKTA_INDICATIF_PAYS', '241'),
 
+    // Premier compte Super Admin, créé au déploiement par ReferentielSeeder
+    // s'il n'existe pas encore (voir docs/DEPLOIEMENT.md).
+    'super_admin' => [
+        'email' => env('DOKTA_SUPERADMIN_EMAIL'),
+        'password' => env('DOKTA_SUPERADMIN_PASSWORD'),
+        'nom' => env('DOKTA_SUPERADMIN_NOM', 'Équipe DOKTIS'),
+    ],
+
 ];

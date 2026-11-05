@@ -1,13 +1,18 @@
 /** Nom public de la plateforme et adresses utilisées côté serveur. */
 export const SITE_NAME = 'DOKTIS';
 
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+/** Adresse publique du site (voir next.config.ts). */
+export const SITE_URL = (process.env.DOKTIS_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, '');
 
-/** Adresse de l'API vue depuis le navigateur. */
+/**
+ * Adresse de l'API vue depuis le navigateur. En production : « /api », relayé
+ * par Next.js vers l'API (même domaine). En local : http://localhost:8000/api.
+ */
 export const PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api';
 
-/** Adresse de l'API vue depuis le serveur Next.js (peut être interne). */
-export const SERVER_API_URL = process.env.API_URL ?? PUBLIC_API_URL;
+/** Adresse de l'API vue depuis le serveur Next.js (réseau privé sur Render). */
+export const SERVER_API_URL =
+  process.env.API_URL ?? (PUBLIC_API_URL.startsWith('http') ? PUBLIC_API_URL : `${process.env.DOKTIS_API_ORIGIN}/api`);
 
 export const JOURS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 

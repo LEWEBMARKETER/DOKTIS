@@ -1,0 +1,113 @@
+# Blueprint Render de DOKTIS : une base PostgreSQL et deux services web,
+# tous à Frankfurt (région Render la plus proche du Gabon).
+# Mode d'emploi : docs/DEPLOIEMENT.md
+
+databases:
+  - name: doktis-db
+    region: frankfurt
+    plan: basic-256mb
+    databaseName: doktis
+    user: doktis
+    postgresMajorVersion: "16"
+    # Aucun accès depuis Internet : seule l'API la joint, par le réseau privé.
+    ipAllowList: []
+
+services:
+  # --- API Laravel (Docker, PHP 8.4) ---
+  - type: web
+    name: doktis-api
+    runtime: docker
+    region: frankfurt
+    plan: starter
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /up
+    buildFilter:
+      paths:
+        - backend/**
+    envVars:
+      - key: APP_NAME
+        value: DOKTIS
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      # Secret aléatoire généré par Render ; la clé Laravel en est dérivée au démarrage.
+      - key: APP_KEY_SEED
+        generateValue: true
+      - key: APP_LOCALE
+        value: fr
+      - key: APP_FALLBACK_LOCALE
+        value: fr
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: info
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: doktis-db
+          property: connectionString
+      # L'API n'utilise que des jetons : pas de session côté serveur.
+      - key: SESSION_DRIVER
+        value: array
+      # Cache (et limitation de débit) partagé en base : le disque est effacé à chaque déploiement.
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: BROADCAST_CONNECTION
+        value: log
+      - key: FILESYSTEM_DISK
+        value: local
+      # V1 : annuaire seul.
+      - key: DOKTA_MODULE_SAAS
+        value: "false"
+      - key: DOKTA_MODULE_PATIENT
+        value: "false"
+      - key: DOKTA_PAYS
+        value: Gabon
+      - key: DOKTA_FUSEAU_LOCAL
+        value: Africa/Libreville
+      - key: DOKTA_INDICATIF_PAYS
+        value: "241"
+      # Premier compte Super Admin : à saisir lors de la création du blueprint.
+      - key: DOKTA_SUPERADMIN_EMAIL
+        sync: false
+      - key: DOKTA_SUPERADMIN_PASSWORD
+        sync: false
+
+  # --- Site public et espace praticien / Super Admin (Next.js) ---
+  - type: web
+    name: doktis-web
+    runtime: node
+    region: frankfurt
+    plan: starter
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /robots.txt
+    buildFilter:
+      paths:
+        - frontend/**
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # Le navigateur appelle /api sur le domaine du site ; Next.js relaie vers l'API.
+      - key: NEXT_PUBLIC_API_URL
+        value: /api
+      # Adresse privée de l'API (réseau interne Render), ex. « doktis-api:10000 ».
+      - key: API_HOSTPORT
+        fromService:
+          type: web
+          name: doktis-api
+          property: hostport
+      - key: NEXT_PUBLIC_DOKTA_MODULE_SAAS
+        value: "false"
+      - key: NEXT_PUBLIC_DOKTA_MODULE_PATIENT
+        value: "false"
+      # À renseigner une fois le nom de domaine branché (ex. https://doktis.ga).
+      # Tant qu'il est vide, l'adresse Render du service est utilisée.
+      # - key: NEXT_PUBLIC_SITE_URL
+      #   value: https://doktis.ga

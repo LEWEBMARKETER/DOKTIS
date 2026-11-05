@@ -37,4 +37,14 @@ return [
         'nom' => env('DOKTA_SUPERADMIN_NOM', 'Équipe DOKTIS'),
     ],
 
+    // Jeu de démonstration de l'annuaire (database/seeders/DemoAnnuaireSeeder.php),
+    // chargé au démarrage quand DOKTA_DONNEES_DEMO=true.
+    'demo' => [
+        'actif' => (bool) env('DOKTA_DONNEES_DEMO', false),
+        // Numéro WhatsApp qui reçoit les demandes de rendez-vous des fiches de démo.
+        'whatsapp' => env('DOKTA_DEMO_WHATSAPP'),
+        // Mot de passe des comptes praticiens de démo (sinon, connexion impossible).
+        'password' => env('DOKTA_DEMO_PASSWORD'),
+    ],
+
 ];

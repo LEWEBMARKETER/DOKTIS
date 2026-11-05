@@ -70,7 +70,22 @@ Une fois connecté, vous pouvez supprimer `DOKTA_SUPERADMIN_PASSWORD` des variab
 
 L'API n'a pas besoin de domaine : elle reste derrière le site.
 
-## 5. Remplir l'annuaire
+## 5. Aperçu avec des données de démonstration
+
+Tant que `DOKTA_DONNEES_DEMO` vaut `true` (réglage actuel de `render.yaml`), l'API charge au démarrage 8 cabinets fictifs à Libreville, Owendo, Port-Gentil et Franceville : horaires, tarifs, praticiens, et créneaux de la semaine à venir pour le Cabinet Dentaire Étoile. Chaque fiche porte la mention « Fiche de démonstration DOKTIS : ce cabinet n'existe pas ». Les créneaux sont renouvelés à chaque redémarrage de l'API s'il n'en reste plus.
+
+Deux réglages facultatifs, dans `doktis-api` → **Environment** :
+
+| Variable | Effet |
+|---|---|
+| `DOKTA_DEMO_WHATSAPP` | Votre numéro (ex. `077 12 34 56`) : le bouton WhatsApp des fiches de démo vous envoie les demandes. Sans lui, les fiches de démo n'ont pas de contact (aucun numéro inventé, pour ne pas écrire à des inconnus). |
+| `DOKTA_DEMO_PASSWORD` | Active la connexion praticien de démo : `praticien.etoile@demo.doktis` avec ce mot de passe, pour voir **Ma fiche**, **Mes créneaux** et **Partager ma page**. |
+
+Après un changement de variable, Render redémarre l'API. Les pages publiques se mettent à jour en 5 minutes au plus.
+
+Avant de saisir de vraies fiches : passer `DOKTA_DONNEES_DEMO` à `false` et repartir d'une base neuve (c'est le cas en passant aux offres payantes avec une nouvelle base). Les fiches de démo sont repérables par leur plan `demo`.
+
+## 6. Remplir l'annuaire
 
 Avec le compte Super Admin : **Fiches annuaire** → **Nouvelle fiche** pour chaque cabinet de la ville pilote. Les praticiens revendiquent ensuite leur fiche depuis le site ; les demandes arrivent dans **Revendications**.
 

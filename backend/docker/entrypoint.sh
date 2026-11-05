@@ -27,6 +27,11 @@ php artisan view:cache
 php artisan migrate --force
 php artisan db:seed --class=ReferentielSeeder --force
 
+# Jeu de démonstration (aperçu en ligne), uniquement s'il est activé.
+if [ "${DOKTA_DONNEES_DEMO:-false}" = "true" ]; then
+    php artisan db:seed --class=DemoAnnuaireSeeder --force
+fi
+
 chown -R www-data:www-data storage bootstrap/cache
 
 exec apache2-foreground

@@ -77,6 +77,12 @@ services:
         value: Africa/Libreville
       - key: DOKTA_INDICATIF_PAYS
         value: "241"
+      # Jeu de démonstration (8 cabinets fictifs) pour l'aperçu en ligne.
+      # Mettre à "false" avant de saisir de vraies fiches. Facultatif, à ajouter
+      # dans le tableau de bord : DOKTA_DEMO_WHATSAPP (votre numéro, qui recevra
+      # les demandes de test) et DOKTA_DEMO_PASSWORD (connexion praticien de démo).
+      - key: DOKTA_DONNEES_DEMO
+        value: "true"
       # Premier compte Super Admin : à saisir lors de la création du blueprint.
       - key: DOKTA_SUPERADMIN_EMAIL
         sync: false

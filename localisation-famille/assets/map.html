@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  html, body, #map { height: 100%; margin: 0; background: #e8eef5; font-family: sans-serif; }
+  #msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+         color: #455a64; font-size: 15px; text-align: center; padding: 24px; pointer-events: none; }
+  .lbl { font-weight: bold; font-size: 13px; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="msg">Chargement de la carte…</div>
+<script>
+var map = null, layer = null, markers = {}, firstFit = true;
+
+function init() {
+  var msg = document.getElementById('msg');
+  if (typeof L === 'undefined') { msg.textContent = 'Carte indisponible (pas de connexion Internet). La liste ci-dessous reste à jour.'; return; }
+  msg.textContent = '';
+  map = L.map('map', { zoomControl: true, attributionControl: true }).setView([46.6, 2.4], 5);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd', maxZoom: 19,
+    attribution: '&copy; OpenStreetMap &copy; CARTO'
+  }).addTo(map);
+  layer = L.layerGroup().addTo(map);
+}
+
+function label(text) {
+  var s = document.createElement('span');
+  s.className = 'lbl';
+  s.textContent = text;
+  return s;
+}
+
+// list: [{id, name, lat, lon, acc, sos, stale, me}]
+function setMembers(list, fit) {
+  if (!map) return;
+  layer.clearLayers();
+  markers = {};
+  var pts = [];
+  var msg = document.getElementById('msg');
+  msg.textContent = list.length ? '' : 'Aucune position reçue pour le moment.';
+  list.forEach(function (m) {
+    var color = m.sos ? '#E53935' : (m.stale ? '#90A4AE' : (m.me ? '#43A047' : '#1565C0'));
+    var ll = [m.lat, m.lon];
+    if (m.acc && m.acc > 30) {
+      L.circle(ll, { radius: m.acc, color: color, weight: 1, fillOpacity: 0.08 }).addTo(layer);
+    }
+    var mk = L.circleMarker(ll, { radius: 10, color: '#fff', weight: 3, fillColor: color, fillOpacity: 1 }).addTo(layer);
+    mk.bindTooltip(label(m.name), { permanent: true, direction: 'top', offset: [0, -10] });
+    markers[m.id] = mk;
+    pts.push(ll);
+  });
+  if (pts.length && (fit || firstFit)) {
+    firstFit = false;
+    if (pts.length === 1) map.setView(pts[0], 15);
+    else map.fitBounds(pts, { padding: [40, 40], maxZoom: 16 });
+  }
+}
+
+function focusMember(id) {
+  var m = markers[id];
+  if (m && map) { map.setView(m.getLatLng(), 16); m.openTooltip(); }
+}
+
+init();
+</script>
+</body>
+</html>

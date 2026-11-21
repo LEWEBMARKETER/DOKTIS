@@ -1,0 +1,116 @@
+nom	categorie	specialites	praticien	adresse	quartier	ville	boite_postale	telephones	email	site_web	horaires	ouvert_24h	sources	notes
+Centre Hospitalier Universitaire de Libreville (CHUL)	hopital	Urgences		Centre-ville	Centre-ville	Libreville		066 00 80 60 / 066 00 80 61 / 060 47 30 00 / 066 00 60 49				oui	LPG_HOP+MIB	Urgences : 060 47 30 00. D'autres sources citent 011 72 32 15 / 011 76 30 17.
+Centre Hospitalier Universitaire d'Angondjé	hopital	Urgences		Angondjé	Angondjé	Akanda		011 45 90 00 / 011 45 90 04 / 011 45 90 07 / 011 45 90 10				oui	LPG_HOP+WIKI	Urgences : 011 45 90 10.
+Centre Hospitalier Universitaire d'Owendo	hopital					Owendo		062 52 03 80 / 011 70 72 29	chuowendo@gmail.com				LPG_HOP+MIB	
+Hôpital d'Instruction des Armées Omar Bongo Ondimba	hopital			PK 9	PK 9	Libreville		011 79 00 00					LPG_HOP+AMB	
+Hôpital d'Instruction des Armées d'Akanda	hopital			Angondjé	Angondjé	Akanda							LPG_HOP+INS	Coordonnées à compléter.
+Hôpital spécialisé de Nkembo	hopital			Nkembo	Nkembo	Libreville		011 72 62 65					LPG_HOP	
+Institut de Cancérologie de Libreville	hopital	Oncologie		Angondjé	Angondjé	Akanda		062 06 65 55 / 074 35 85 35					LPG_HOP+WIKI	
+Centre Hospitalier Régional de Port-Gentil	hopital			Ntchengué	Ntchengué	Port-Gentil		011 55 23 33 / 011 55 23 81					MIB	
+Centre Hospitalier Régional de Mouila	hopital					Mouila		011 86 12 32					MIB+WIKI	
+Centre Hospitalier Régional de Tchibanga	hopital					Tchibanga		011 82 02 93					MIB	
+Centre Hospitalier Régional de Makokou	hopital					Makokou		011 90 30 78 / 011 90 30 84 / 011 90 31 65					MIB	
+Centre Hospitalier Régional d'Oyem	hopital					Oyem		011 98 61 18 / 011 98 61 56					MIB	
+Centre Hospitalier Régional Georges Rawiri	hopital					Lambaréné		01 58 11 45					MIB	Numéros partagés avec l'Hôpital Albert Schweitzer selon la source.
+Hôpital Albert Schweitzer	hopital					Lambaréné							MIB	Coordonnées à confirmer (numéros partagés avec le CHR Georges Rawiri).
+Centre Hospitalier Universitaire Amissa Bongo	hopital			Epila	Epila	Franceville		074 53 45 64					HUM	
+Hôpital de l'Amitié Sino-Gabonaise	hopital			Franceville 2	Franceville 2	Franceville		011 67 70 34					HUM	
+Centre International de Recherches Médicales de Franceville (CIRMF)	laboratoire	Laboratoire; Recherche				Franceville		011 67 70 92 / 011 67 70 96					HUM	
+Polyclinique Dr Chambrier	clinique	Ambulances; IRM; Bloc opératoire; Laboratoire		Montagne Sainte	Montagne Sainte	Libreville	2230	011 76 14 68 / 065 04 61 66 / 011 72 38 76 / 01 72 93 02			24h/24	oui	AMB+G4Y+LPG_LAB	
+Polyclinique El-Rapha	clinique			Boulevard Ouaban	Trois Quartiers	Libreville	256	077 98 66 60 / 065 11 80 95 / 01 44 70 00		el-raphaga.com			LPG_CLI+AMB+G4Y	Conventionnée CFE selon l'Ambassade de France.
+Polyclinique Biyoghe	clinique			Montagne Sainte	Montagne Sainte	Libreville	3925	01 74 29 62 / 01 74 29 63 / 01 74 29 64					AMB+G4Y	
+Polyclinique Tsitse	clinique			Lalala droite, au-dessus du Cecado	Lalala	Libreville	15920	062 72 82 56 / 074 10 27 07			24h/24, 7j/7	oui	LPG_CLI	
+Polyclinique Nour	clinique			Route du stade, descente Label TV		Libreville		077 99 99 38 / 062 35 36 35					LPG_CLI	
+Polyclinique Centre Diagnostic	clinique	Médecine générale; Pédiatrie; Cardiologie; Imagerie médicale; Laboratoire; Maternité; Urgences		Angle bd Léon Mba et av. Jean-Paul II	Bessieux	Libreville		077 63 00 00 / 062 00 00 10		https://centre-diagnostic.com	Urgences 24h/24	oui	LPG_CLI+G4Y	
+Polyclinique Marthenica	clinique			Montée de Louis	Louis	Libreville		074 11 12 22 / 066 00 30 21					LPG_CLI	
+Polyclinique de Bethesda	clinique			Face au golf, avant l'échangeur de Lalala	Lalala	Libreville		065 28 20 66 / 066 26 89 89					G4Y	
+Union Médicale	clinique			Ancienne Sobraga		Libreville		011 73 70 85			24h/24	oui	G4Y+LPG_CLI	
+Clinique Pasteur	clinique	Échographie; Imagerie médicale		Nzeng-Ayong, Dragages	Nzeng-Ayong	Libreville		062 12 71 06					LPG_LAB	
+Clinique MIA	clinique	Gynécologie-obstétrique		Plaine Niger	Plaine Niger	Libreville		011 77 25 45					G4Y	
+Clinique de l'Espérance	clinique			Cité Damas	Cité Damas	Libreville		011 46 10 10					HUM	
+Clinique des Jades	clinique			Alénakiri	Alénakiri	Libreville		077 34 03 96					HUM	
+Clinique des Merveilles	clinique			Nzeng-Ayong	Nzeng-Ayong	Libreville		062 17 73 33					HUM	
+Clinique Eka-Hadji	clinique			Ozangué	Ozangué	Libreville		066 22 40 51					HUM	
+Clinique Élite	clinique			Nzeng-Ayong	Nzeng-Ayong	Libreville		066 24 89 99					HUM	
+Alpha Oméga Diagnostic	clinique	Médecine générale; Laboratoire		Au-dessus de la SEEG de Mbolo	Mbolo	Libreville		011 76 17 17 / 062 76 17 17					LPG_GEN+HUM	
+Clinique Rosalie	clinique			Akébé	Akébé	Libreville							LPG_CLI	Coordonnées à compléter.
+Clinique des 5 Palmiers	clinique			Akébé-Ville	Akébé	Libreville							LPG_CLI	Coordonnées à compléter.
+Polyclinique Edelweiss	clinique	Médecine; Chirurgie; Laboratoire PCR		Rue Pierre Auguste Avaro (Pont Amina)	Centre-ville	Port-Gentil	3624	065 99 97 03 / 011 56 50 13 / 077 52 88 06					LPG_CLI+HUM	
+Clinique du Littoral	clinique					Port-Gentil		011 56 50 13					HUM	Numéro identique à la Polyclinique Edelweiss dans la source : à vérifier.
+Clinique Eleos	clinique			Route de l'aéroport		Port-Gentil		066 28 21 38					HUM	
+Groupe Médical de Louis	cabinet_medical	Gynécologie; Pédiatrie; Angiologie		Louis	Louis	Libreville		062 91 32 03					G4Y	
+Cabinet de Groupe	cabinet_medical	Pédiatrie		Montagne Sainte	Montagne Sainte	Libreville		011 74 31 31					G4Y	
+Cabinet Médical Biflor	cabinet_medical	Médecine générale		Louis	Louis	Libreville		011 44 67 80					LPG_GEN	
+Cabinet Groupe Médical Akanda	cabinet_medical	Médecine générale				Akanda							LPG_GEN	Coordonnées à compléter.
+Cabinet Médical des Gué-Gué	cabinet_medical	Médecine générale		Gué-Gué	Gué-Gué	Libreville							LPG_GEN	Coordonnées à compléter.
+Cabinet Médical Roland	cabinet_medical	Médecine générale; Pédiatrie; Gynécologie				Libreville				https://www.cabinetmedicalroland.com			CMR	Se présente comme partenaire CNAMGS.
+Cabinet médical d'Oloumi	cabinet_medical	Médecine générale		Oloumi	Oloumi	Libreville							PF	Coordonnées à compléter.
+Cabinet de pédiatrie du Dr Tatiana Augé	cabinet_medical	Pédiatrie	Dr Tatiana Augé			Libreville							PF	Coordonnées à compléter.
+Cabinet Lammers	cabinet_medical					Port-Gentil							EXP	Coordonnées à compléter.
+Cabinet Dentaire Dr Charafe	cabinet_dentaire	Chirurgie dentaire	Dr Patrick Charafe	Galerie Carrefour Prix Import, 1er étage	Centre-ville	Libreville		077 15 15 15 / 074 33 99 99 / 066 55 86 55					LPG_DEN+G4Y+GOV	Autre adresse citée : Immeuble Le Président, centre-ville.
+Cabinet Dentaire Les Frangipaniers	cabinet_dentaire	Chirurgie dentaire	Dr Stéphane Baraglioli			Libreville		+241 11 74 23 43					GOV	
+Cabinet Dentaire Malanda	cabinet_dentaire	Chirurgie dentaire	Dr Edith Malanda	Centre-ville	Centre-ville	Libreville		+241 11 72 08 72					GOV	
+Cabinet Dentaire Dr Jérôme Mathieu	cabinet_dentaire	Chirurgie dentaire	Dr Jérôme Mathieu	Centre-ville, près du PMUG et de l'ambassade d'Italie	Centre-ville	Libreville		011 76 56 37			Lun-Ven 8h-12h / 14h30-18h30		G4Y	
+Cabinet Dentaire Dr Abbas	cabinet_dentaire	Chirurgie dentaire	Dr Abbas	Immeuble Centr'Affaires	Rénovation	Libreville		011 74 17 39 / 066 24 89 99					LPG_DEN+G4Y	Gabon4you situe le cabinet à Montagne Sainte.
+Cabinet Dentaire Dr Avomo Mistoul	cabinet_dentaire	Chirurgie dentaire	Dr Avomo Mistoul	Montée de Louis, Galerie Opio	Louis	Libreville		011 73 74 41 / 066 64 63 65			Lun-Ven 8h-17h		LPG_DEN	
+Cabinet Dentaire Dr Villeneuve	cabinet_dentaire	Chirurgie dentaire	Dr Étienne Villeneuve	Descente Jeanne Ebori, à gauche		Libreville		066 53 91 91 / 074 65 32 32	info@cabinet-villeneuve.com				LPG_DEN	
+Cabinet Dentaire Dr Mbe Emane	cabinet_dentaire	Chirurgie dentaire	Dr Mbe Emane	Descente Jeanne Ebori		Libreville		066 49 85 00					G4Y	
+Cabinet Dentaire Lilia	cabinet_dentaire	Chirurgie dentaire	Dr Anne Cabon	École publique de Glass	Glass	Libreville		062 01 14 01 / 074 23 65 65			8h-18h30		G4Y	
+Cabinet Dentaire SNI Owendo	cabinet_dentaire	Chirurgie dentaire		SNI	SNI	Owendo							EXP	Coordonnées à compléter.
+Laboratoire d'Analyses Médicales Sainte-Marie	laboratoire	Analyses médicales		198 bd Omar Bongo Ondimba (bd Triomphal), face à Mbolo	Mbolo	Libreville	1838	011 74 00 62 / 062 81 59 95					LPG_LAB+HUM	
+Unilab	laboratoire	Analyses médicales		Nombakélé	Nombakélé	Libreville	16084	011 77 29 68			Lun-Ven 7h30-18h, Sam 7h30-13h		LPG_LAB	
+Laboratoire Central d'Analyses Médicales (LCAM)	laboratoire	Analyses médicales		Avenue de Cointet, derrière le Commissariat central	Centre-ville	Libreville		011 72 50 50 / 011 77 88 20 / 074 72 50 00 / 066 77 00 57			Lun-Ven 7h45-18h, Sam -13h		LPG_LAB+G4Y+HUM	
+Biolab	laboratoire	Analyses médicales		Immeuble Sonagar, à côté du Consulat de France	Centre-ville	Libreville		011 72 14 29					LPG_LAB	
+Laboratoire d'Analyses Médicales du CHUL	laboratoire	Analyses médicales		Avenue Félix Éboué, entrée du CHUL	Centre-ville	Libreville	13895	066 40 08 80 / 077 66 62 15					LPG_LAB	
+Optic Gabon	opticien	Optique		Face à l'UGB	Centre-ville	Libreville		011 76 05 28					LPG_OPT	
+Médical Optique	opticien	Optique		Centre-ville, face à AFG Bank	Centre-ville	Libreville	94	011 74 29 99	medopto@yahoo.fr				LPG_OPT	
+Centre Optic Gabonais (COG)	opticien	Optique		Immeuble UGB	Centre-ville	Libreville	1446	011 77 89 90					LPO	
+Africa Vision	opticien	Optique		Boulevard Triomphal, à côté de la pharmacie Sainte-Marie		Libreville		011 76 10 19					LPO	
+Regard'Optique	opticien	Optique		Nouvelle cité au pont	Nzeng-Ayong	Libreville		077 93 83 63			Lun-Ven 9h-18h30, Sam 9h-15h30		LPO	
+Optikah	opticien	Optique		Après Bambino Village, bd Jean-Paul II	Nzeng-Ayong	Libreville		074 04 03 04 / 074 87 78 97					LPO	
+Optique Obelembia	opticien	Optique				Owendo		077 66 62 76					LPO	
+Cabinet de kinésithérapie Bertrand Martel	kinesitherapie	Kinésithérapie	Bertrand Martel	Immeuble Diamant II, bât. A, 2e étage		Libreville	4261	011 72 10 80 / 066 26 84 31					LPG_KIN	
+Cabinet de kinésithérapie Duflot MK	kinesitherapie	Kinésithérapie		Batterie IV, immeuble BICP	Batterie IV	Libreville		077 48 48 26	duflot.mk@yahoo.com	http://www.cabinetkineduflotmk.com			LPG_KIN	
+Cabinet médical Saphyr Marc Rosa	kinesitherapie	Kinésithérapie	Marc Rosa	Route de l'école des Tsanguettes, face aux studios M'Plaza	Angondjé	Akanda		011 45 51 77 / 077 18 05 37					LPG_KIN	
+Cabinet Stocky	kinesitherapie	Kinésithérapie		Centre-ville	Centre-ville	Libreville		011 74 32 48 / 066 62 05 25					LPG_KIN	
+Grande Pharmacie des Forestiers	pharmacie			Galerie marchande de Mbolo	Mbolo	Libreville		011 72 23 52 / 065 66 71 71 / 065 99 59 93	infos@pharmaforestiers.com				LPG_PHA+HUM+CNAM	WhatsApp : 065 99 59 93.
+Pharmacie Sainte-Marie	pharmacie			Boulevard Triomphal		Libreville		+241 11 74 00 52					G4Y	
+Pharmacie de Louis	pharmacie			Quartier Louis	Louis	Libreville		01 73 31 69					LPG_PHA	
+Pharmacie de l'Orchidée	pharmacie			Montée de Louis	Louis	Libreville		011 73 24 19 / 062 64 64 70			24h/24	oui	LPG_PHA	
+Pharmacie du Carrefour GP	pharmacie			Carrefour GP	Nzeng-Ayong	Libreville		+241 66 18 41 53					G4Y	
+Pharmacie du Fin Goudron	pharmacie			Fin goudron	Nzeng-Ayong	Libreville		+241 62 27 29 04 / +241 65 21 21 08					G4Y	
+Pharmacie de l'Aéroport	pharmacie					Libreville		077 77 77 77			7j/7 8h-21h		LPG_PHA	Numéro à confirmer.
+Pharmacie de la Grâce	pharmacie			Angondjé	Angondjé	Akanda		062 94 94 24			24h/24	oui	LPG_PHA	
+Pharmacie Rapha-El	pharmacie			PK12, immeuble City Star	PK12	Libreville		011 46 45 54 / 074 42 02 48			24h/24, 7j/7	oui	LPG_PHA	
+Pharmacie d'Avorbam	pharmacie			Rond-point d'Avorbam	Avorbam	Akanda		074 73 31 94 / 065 50 54 54	info@pharmaciedavorbam.com		24h/24	oui	LPG_PHA	
+Pharmacie Acaé	pharmacie			Carrefour Acaé	Acaé	Libreville		011 49 31 70			24h/24	oui	LPG_PHA	
+Pharmacie Centrale de Garde	pharmacie	Pharmacie de garde		Centre-ville, face à Agatour	Centre-ville	Libreville		066 15 87 44			Nuits 19h-8h ; dimanches et jours fériés 24h/24		LPG_PHA+UBI	
+Pharmacie des Facultés	pharmacie			Ancienne Sobraga, face à l'Université		Libreville		011 44 37 38 / 062 23 88 88 / 066 37 41 64			7h30-21h30 (sam. 20h)		LPG_PHA+HUM	
+Pharmacie Avolenzame	pharmacie			Route Atong Abè	Nkembo	Libreville		065 19 03 04			7j/7 7h-20h		LPG_PHA	
+Nouvelle Pharmacie d'Awondo	pharmacie			Boulevard Louis (Jean-Jacques Boucavel)	Awondo	Libreville		011 44 57 07 / 066 15 80 00					LPG_PHA	
+Pharmacie de Bikélé	pharmacie			Près de Prix Import	Bikélé	Libreville		077 57 61 37 / 065 19 03 02			24h/24, 7j/7	oui	LPG_PHA	
+Pharmacie de Garde de Beau-Séjour	pharmacie	Pharmacie de garde		Près du centre social de Beau-Séjour	Beau-Séjour	Libreville		065 19 03 36			24h/24, 7j/7	oui	LPG_PHA+CNAM	
+Pharmacie des Gué-Gué	pharmacie			Rond-point de Gué-Gué	Gué-Gué	Libreville		065 19 03 40					LPG_PHA	
+Pharmacie d'Oloumi	pharmacie			Zone industrielle d'Oloumi	Oloumi	Libreville		065 58 98 98 / 011 72 15 82			7j/7 7h30-20h30		LPG_PHA	
+Pharmacie Ondogo	pharmacie			Après la cité de la GR	Ondogo	Libreville		065 58 68 68 / 065 51 68 58			24h/24, 7j/7	oui	LPG_PHA+G4Y	
+Pharmacie Les Marguerites	pharmacie			Awendjé	Awendjé	Libreville		011 77 14 02 / 066 43 47 01			24h/24	oui	LPG_PHA	
+Pharmacie Blanche & Élise	pharmacie			Niali	Niali	Libreville		077 23 55 29 / 062 05 51 50					HUM	Mêmes numéros que la Pharmacie Dr Ndoumou (Oyem) dans la source : à vérifier.
+Pharmacie de la Poste d'Akébé	pharmacie			Akébé	Akébé	Libreville							CNAM	Conventionnée CNAMGS. Coordonnées à compléter.
+Pharmacie d'Angondjé	pharmacie			Angondjé	Angondjé	Akanda							UBI	Coordonnées à compléter.
+Pharmacie Iboga de Glass	pharmacie			Glass	Glass	Libreville							UBI	Coordonnées à compléter.
+Pharmacie Jeanne et Léo	pharmacie			Carrefour SNI Owendo, Immeuble Le Diana	SNI	Owendo							EXP	Coordonnées à compléter.
+Pharmacie Razel	pharmacie					Owendo							UNI	Citée dans les gardes d'Owendo (2021).
+Pharmacie Nouvelle Owendo	pharmacie					Owendo							UNI	Citée dans les gardes d'Owendo (2021).
+Pharmacie Lycée Technique	pharmacie					Owendo							UNI	Citée dans les gardes d'Owendo (2021).
+Pharmacie du Carrefour Banco	pharmacie			Boulevard Léon Mba	Banco	Port-Gentil		074 53 38 42					LPG_PHA	
+Pharmacie Centrale Poyet	pharmacie			Centre-ville	Centre-ville	Port-Gentil		065 22 65 84					HUM	
+Pharmacie Andréa	pharmacie			Boulevard Léon Mba		Port-Gentil		077 76 24 00					HUM+UBI+LPG_PHA	
+Pharmacie Moderne	pharmacie			Potos	Potos	Franceville		011 67 70 71					HUM+UBI	
+Dépôt pharmaceutique du Centre	depot_pharmaceutique			Centre	Centre	Franceville		011 67 16 21					HUM	
+Pharmacie Dr Ndoumou	pharmacie			Centre-ville, face à la tribune	Centre-ville	Oyem		077 23 55 29 / 062 05 51 50					HUM	
+Pharmacie Pascale Magalie Mfoumou	pharmacie			Près du marché de Ngouema	Ngouema	Oyem		077 23 55 29 / 062 05 51 50					HUM	Mêmes numéros que la Pharmacie Dr Ndoumou dans la source : à vérifier.
+Pharmacie Mathis	pharmacie					Oyem		074 18 29 17					UBI	
+Pharmacie Itola	pharmacie			Avant l'aérodrome		Lambaréné		011 58 10 75					HUM	
+Pharmacie Sainte Honorine	pharmacie					Moanda		066 24 29 91 / 077 47 65 76					HUM	
+Pharmacie Boundama	pharmacie					Moanda		072 43 20 12					HUM+UBI	Listée « Dépôt Pharma Boundama » chez UbiPharm.
+Notre Pharmacie	pharmacie			Centre-ville	Centre-ville	Bitam		07 17 86 26					HUM+UBI	

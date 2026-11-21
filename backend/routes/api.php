@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\Patient\RendezVousController as PatientRendezVousCo
 use App\Http\Controllers\Api\Patient\DossierController as PatientDossierController;
 use App\Http\Controllers\Api\Patient\MessagerieController as PatientMessagerieController;
 use App\Http\Controllers\Api\Directory\CabinetController as DirectoryCabinetController;
+use App\Http\Controllers\Api\Directory\EtablissementSanteController as DirectoryEtablissementSanteController;
 use App\Http\Controllers\Api\Directory\SpecialiteController as DirectorySpecialiteController;
 use App\Http\Controllers\Api\PatientController;
 use App\Http\Controllers\Api\PlanTraitementController;
@@ -174,4 +175,7 @@ Route::prefix('directory')->group(function () {
     Route::get('/cabinets', [DirectoryCabinetController::class, 'index']);
     Route::get('/cabinets/{cabinet}', [DirectoryCabinetController::class, 'show']);
     Route::get('/specialites', [DirectorySpecialiteController::class, 'index']);
+    Route::get('/etablissements', [DirectoryEtablissementSanteController::class, 'index']);
+    Route::get('/etablissements/categories', [DirectoryEtablissementSanteController::class, 'categories']);
+    Route::get('/etablissements/{etablissement}', [DirectoryEtablissementSanteController::class, 'show']);
 });

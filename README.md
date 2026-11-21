@@ -30,6 +30,9 @@ Création de compte et connexion (email ou téléphone) · recherche et prise de
 ### DOKTA Directory (API prête, interface à construire)
 Recherche publique de cabinets par ville, quartier, spécialité, langue parlée, urgences, PMR, assurance acceptée · fiche détaillée d'un cabinet (spécialités, horaires, services, avis, praticiens).
 
+### Référentiel national des structures sanitaires
+Annuaire des pharmacies, hôpitaux, cliniques, cabinets médicaux et dentaires, laboratoires, opticiens et kinésithérapeutes du Gabon, y compris les structures non clientes de DOKTA Office (table `etablissements_sante`). Les données sources et les fichiers prêts à l'emploi (CSV, JSON, SQL) se trouvent dans `data/annuaire-gabon/`. Import : `php artisan annuaire:importer`. Voir `data/annuaire-gabon/README.md`.
+
 ### Super Admin DOKTA
 Statistiques nationales · gestion des cabinets et de leurs abonnements · tickets de support · incidents · journal d'audit (`journal_actions`).
 
@@ -89,6 +92,7 @@ php artisan test
 - `POST /api/auth/register-cabinet`, `/api/auth/login` — DOKTA Office.
 - `POST /api/patient/auth/register`, `/api/patient/auth/login` — DOKTA Patient.
 - `GET /api/directory/cabinets`, `/api/directory/cabinets/{id}` — DOKTA Directory (public).
+- `GET /api/directory/etablissements`, `/api/directory/etablissements/{id}` — référentiel des structures sanitaires (public).
 - `GET /api/super-admin/statistiques` — Super Admin DOKTA (rôle `super_admin`).
 
 Le fichier `routes/api.php` regroupe l'ensemble des routes par module.

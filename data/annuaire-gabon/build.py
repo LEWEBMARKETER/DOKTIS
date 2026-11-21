@@ -10,6 +10,7 @@ Sorties :
   - etablissements_sante_gabon.csv  (UTF-8 avec BOM, séparateur virgule)
   - etablissements_sante_gabon.json
   - etablissements_sante_gabon.sql  (PostgreSQL, upsert sur `code`)
+  - etablissements_sante_gabon.xlsx (classeur Excel : mode d'emploi, synthèse, annuaire, sources)
 
 Usage : python3 build.py
 """
@@ -272,11 +273,239 @@ def ecrire_sql(fiches: list[dict]) -> None:
     (ICI / "etablissements_sante_gabon.sql").write_text("\n".join(lignes) + "\n", encoding="utf-8")
 
 
+LIBELLES = {
+    "pharmacie": "Pharmacie", "depot_pharmaceutique": "Dépôt pharmaceutique", "hopital": "Hôpital",
+    "clinique": "Clinique / Polyclinique", "centre_sante": "Centre de santé", "cabinet_medical": "Cabinet médical",
+    "cabinet_dentaire": "Cabinet dentaire", "laboratoire": "Laboratoire d'analyses", "imagerie": "Imagerie médicale",
+    "opticien": "Opticien", "kinesitherapie": "Kinésithérapie", "autre": "Autre professionnel de santé",
+}
+
+DESCRIPTIONS = {
+    "code": "Identifiant stable (clé d'import DOKTIS). Ne pas modifier.",
+    "nom": "Nom de la structure.",
+    "slug": "Identifiant URL (généré).",
+    "categorie": "Code catégorie (liste déroulante, voir onglet Synthèse).",
+    "specialites": "Spécialités / services, séparés par « ; ».",
+    "praticien": "Praticien principal, si connu.",
+    "adresse": "Adresse ou repère.",
+    "quartier": "Quartier.",
+    "ville": "Ville / commune.",
+    "province": "Province (déduite de la ville).",
+    "pays": "Pays.",
+    "boite_postale": "Boîte postale.",
+    "telephone": "Téléphone principal (format international +241…).",
+    "telephones": "Tous les téléphones, séparés par « ; ».",
+    "email": "Adresse e-mail.",
+    "site_web": "Site web.",
+    "horaires": "Horaires d'ouverture.",
+    "ouvert_24h": "oui / non.",
+    "latitude": "Latitude GPS (décimale).",
+    "longitude": "Longitude GPS (décimale).",
+    "osm_ref": "Référence OpenStreetMap (type/id).",
+    "sources": "Sources de la fiche, séparées par « ; ».",
+    "source_urls": "Liens vers les sources.",
+    "date_collecte": "Date de collecte (AAAA-MM-JJ).",
+    "statut_verification": "a_verifier / verifie / ferme (liste déroulante).",
+    "notes": "Remarques : contradictions entre sources, informations à compléter.",
+}
+
+
+def ecrire_xlsx(fiches: list[dict]) -> None:
+    from openpyxl import Workbook
+    from openpyxl.comments import Comment
+    from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+    from openpyxl.utils import get_column_letter
+    from openpyxl.worksheet.datavalidation import DataValidation
+    from openpyxl.worksheet.table import Table, TableStyleInfo
+
+    police = "Arial"
+    entete_font = Font(name=police, bold=True, color="FFFFFF", size=10)
+    entete_fill = PatternFill("solid", start_color="0B6E4F")
+    normal = Font(name=police, size=10)
+    gras = Font(name=police, size=10, bold=True)
+    titre = Font(name=police, size=14, bold=True, color="0B6E4F")
+    bordure = Border(*(Side(style="thin", color="D9D9D9"),) * 4)
+    jaune = PatternFill("solid", start_color="FFFF00")
+
+    wb = Workbook()
+
+    # --- Onglet Annuaire (mêmes colonnes que le CSV d'import) ---
+    ws = wb.active
+    ws.title = "Annuaire"
+    ws.append(COLONNES)
+    for r in fiches:
+        ligne = []
+        for c in COLONNES:
+            v = r[c]
+            if c in ("latitude", "longitude") and v:
+                v = float(v)
+            ligne.append(v if v != "" else None)
+        ws.append(ligne)
+
+    derniere = ws.max_row
+    largeurs = {"code": 15, "nom": 42, "slug": 30, "categorie": 20, "specialites": 34, "praticien": 22,
+                "adresse": 40, "quartier": 18, "ville": 14, "province": 16, "pays": 8, "boite_postale": 10,
+                "telephone": 16, "telephones": 38, "email": 28, "site_web": 28, "horaires": 26,
+                "ouvert_24h": 10, "latitude": 11, "longitude": 11, "osm_ref": 14, "sources": 40,
+                "source_urls": 50, "date_collecte": 12, "statut_verification": 16, "notes": 60}
+    for i, c in enumerate(COLONNES, start=1):
+        lettre = get_column_letter(i)
+        ws.column_dimensions[lettre].width = largeurs.get(c, 15)
+        cellule = ws.cell(row=1, column=i)
+        cellule.font, cellule.fill = entete_font, entete_fill
+        cellule.alignment = Alignment(vertical="center", wrap_text=True)
+        cellule.comment = Comment(DESCRIPTIONS[c], "DOKTIS")
+    for ligne in ws.iter_rows(min_row=2, max_row=derniere):
+        for cellule in ligne:
+            cellule.font = normal
+            cellule.border = bordure
+            cellule.alignment = Alignment(vertical="top")
+    ws.freeze_panes = "C2"
+    ws.row_dimensions[1].height = 30
+
+    table = Table(displayName="Annuaire", ref=f"A1:{get_column_letter(len(COLONNES))}{derniere}")
+    table.tableStyleInfo = TableStyleInfo(name="TableStyleLight9", showRowStripes=True)
+    ws.add_table(table)
+
+    col = {c: get_column_letter(i) for i, c in enumerate(COLONNES, start=1)}
+    dv_cat = DataValidation(type="list", formula1='"' + ",".join(CATEGORIES) + '"', allow_blank=False)
+    dv_statut = DataValidation(type="list", formula1='"a_verifier,verifie,ferme"', allow_blank=False)
+    dv_24h = DataValidation(type="list", formula1='"oui,non"', allow_blank=False)
+    for dv, c in ((dv_cat, "categorie"), (dv_statut, "statut_verification"), (dv_24h, "ouvert_24h")):
+        ws.add_data_validation(dv)
+        dv.add(f"{col[c]}2:{col[c]}5000")
+
+    # --- Onglet Synthèse (formules) ---
+    syn = wb.create_sheet("Synthèse")
+    provinces = list(PROVINCES)
+    syn["A1"] = "Annuaire DOKTIS des structures sanitaires du Gabon : synthèse"
+    syn["A1"].font = titre
+    syn["A2"] = f"Version {DATE_COLLECTE}. Totaux calculés par formule à partir de l'onglet Annuaire."
+    syn["A2"].font = Font(name=police, size=9, italic=True, color="595959")
+
+    rng = lambda c: f"Annuaire!${col[c]}$2:${col[c]}$5000"
+    entetes = ["Catégorie", "Code"] + provinces + ["Total", "Avec téléphone", "Ouvert 24h/24"]
+    ligne_entete = 4
+    for j, e in enumerate(entetes, start=1):
+        c = syn.cell(row=ligne_entete, column=j, value=e)
+        c.font, c.fill = entete_font, entete_fill
+        c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    syn.row_dimensions[ligne_entete].height = 32
+
+    premiere = ligne_entete + 1
+    for i, code in enumerate(CATEGORIES):
+        r = premiere + i
+        syn.cell(row=r, column=1, value=LIBELLES[code])
+        syn.cell(row=r, column=2, value=code)
+        for j, _ in enumerate(provinces, start=3):
+            entete_prov = f"{get_column_letter(j)}${ligne_entete}"
+            syn.cell(row=r, column=j, value=f'=COUNTIFS({rng("categorie")},$B{r},{rng("province")},{entete_prov})')
+        jt = 3 + len(provinces)
+        syn.cell(row=r, column=jt, value=f'=COUNTIF({rng("categorie")},$B{r})')
+        syn.cell(row=r, column=jt + 1, value=f'=COUNTIFS({rng("categorie")},$B{r},{rng("telephone")},"<>")')
+        syn.cell(row=r, column=jt + 2, value=f'=COUNTIFS({rng("categorie")},$B{r},{rng("ouvert_24h")},"oui")')
+    der = premiere + len(CATEGORIES) - 1
+    rt = der + 1
+    syn.cell(row=rt, column=1, value="Total")
+    for j in range(3, len(entetes) + 1):
+        lettre = get_column_letter(j)
+        syn.cell(row=rt, column=j, value=f"=SUM({lettre}{premiere}:{lettre}{der})")
+    for ligne in syn.iter_rows(min_row=premiere, max_row=rt, max_col=len(entetes)):
+        for c in ligne:
+            c.font = gras if c.row == rt else normal
+            c.border = bordure
+            if c.column >= 3:
+                c.number_format = "#,##0;-#,##0;-"
+                c.alignment = Alignment(horizontal="center")
+    for c in syn[rt]:
+        c.fill = PatternFill("solid", start_color="E2EFDA")
+
+    rc = rt + 2
+    syn.cell(row=rc, column=1, value="Contrôle : lignes de l'onglet Annuaire").font = normal
+    syn.cell(row=rc, column=2, value=f'=COUNTA({rng("code")})').font = normal
+    syn.cell(row=rc + 1, column=1, value="Fiches à vérifier").font = normal
+    syn.cell(row=rc + 1, column=2, value=f'=COUNTIF({rng("statut_verification")},"a_verifier")').font = normal
+    syn.cell(row=rc + 2, column=1, value="Fiches vérifiées").font = normal
+    syn.cell(row=rc + 2, column=2, value=f'=COUNTIF({rng("statut_verification")},"verifie")').font = normal
+    syn.column_dimensions["A"].width = 38
+    syn.column_dimensions["B"].width = 20
+    for j in range(3, len(entetes) + 1):
+        syn.column_dimensions[get_column_letter(j)].width = 13
+    syn.freeze_panes = f"C{premiere}"
+
+    # --- Onglet Sources ---
+    src = wb.create_sheet("Sources")
+    src.append(["Code", "Source", "URL"])
+    for s in lire_tsv(ICI / "sources.tsv"):
+        src.append([s["code"], s["nom"], s["url"]])
+    src.append(["OSM", "OpenStreetMap (ODbL), pour les futurs enrichissements", "https://www.openstreetmap.org/copyright"])
+    for c in src[1]:
+        c.font, c.fill = entete_font, entete_fill
+    for ligne in src.iter_rows(min_row=2):
+        for c in ligne:
+            c.font = normal
+        ligne[2].hyperlink = ligne[2].value
+        ligne[2].font = Font(name=police, size=10, color="0563C1", underline="single")
+    src.column_dimensions["A"].width = 10
+    src.column_dimensions["B"].width = 45
+    src.column_dimensions["C"].width = 95
+
+    # --- Onglet Mode d'emploi ---
+    aide = wb.create_sheet("Mode d'emploi")
+    lignes = [
+        ("Annuaire DOKTIS des structures sanitaires du Gabon", titre),
+        (f"Version {DATE_COLLECTE} : {len(fiches)} structures issues de sources web publiques (voir onglet Sources).", normal),
+        ("", normal),
+        ("Avertissement", gras),
+        ("Aucune fiche n'a encore été vérifiée par téléphone : toutes sont au statut « a_verifier ».", normal),
+        ("Certaines sources datent de plusieurs années. Les contradictions entre sources sont signalées dans la colonne « notes ».", normal),
+        ("", normal),
+        ("Comment mettre à jour", gras),
+        ("1. Modifiez ou complétez les fiches dans l'onglet Annuaire (une ligne = une structure).", normal),
+        ("2. Après vérification par téléphone, passez « statut_verification » à « verifie » (ou « ferme » si la structure n'existe plus).", normal),
+        ("3. Pour une nouvelle structure, laissez « code » et « slug » vides : ils sont générés par build.py.", normal),
+        ("   Le plus simple est d'ajouter la ligne dans data/annuaire-gabon/donnees_brutes.tsv, puis de lancer python3 build.py.", normal),
+        ("4. Plusieurs valeurs dans une même cellule (téléphones, spécialités, sources) se séparent par « ; ».", normal),
+        ("5. Les listes déroulantes contrôlent les colonnes categorie, ouvert_24h et statut_verification.", normal),
+        ("", normal),
+        ("Import dans DOKTIS", gras),
+        ("Enregistrez l'onglet Annuaire au format « CSV UTF-8 (délimité par des virgules) », puis :", normal),
+        ("php artisan annuaire:importer chemin/vers/fichier.csv", Font(name="Courier New", size=10)),
+        ("L'import est idempotent (clé : code) et n'écrase jamais le statut de vérification déjà saisi dans DOKTIS.", normal),
+        ("", normal),
+        ("Exemple de ligne bien remplie", gras),
+    ]
+    for texte, f in lignes:
+        aide.append([texte])
+        aide.cell(row=aide.max_row, column=1).font = f
+    exemple = next(r for r in fiches if r["nom"] == "Grande Pharmacie des Forestiers")
+    for c in ("nom", "categorie", "adresse", "quartier", "ville", "province", "telephone", "telephones",
+              "email", "ouvert_24h", "sources", "statut_verification"):
+        aide.append([c, exemple[c]])
+        aide.cell(row=aide.max_row, column=1).font = gras
+        aide.cell(row=aide.max_row, column=2).font = normal
+    aide.append([])
+    aide.append(["Description des colonnes"])
+    aide.cell(row=aide.max_row, column=1).font = gras
+    for c in COLONNES:
+        aide.append([c, DESCRIPTIONS[c]])
+        aide.cell(row=aide.max_row, column=1).font = gras
+        aide.cell(row=aide.max_row, column=2).font = normal
+    aide.column_dimensions["A"].width = 24
+    aide.column_dimensions["B"].width = 90
+
+    wb.move_sheet("Mode d'emploi", offset=-3)
+    wb.move_sheet("Synthèse", offset=-1)
+    wb.active = 0
+    wb.save(ICI / "etablissements_sante_gabon.xlsx")
+
+
 if __name__ == "__main__":
     fiches = construire()
     ecrire_csv(fiches)
     ecrire_json(fiches)
     ecrire_sql(fiches)
+    ecrire_xlsx(fiches)
 
     from collections import Counter
     print(f"{len(fiches)} structures générées")

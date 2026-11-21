@@ -21,6 +21,7 @@ opticiens, kinésithérapeutes.
 
 | Fichier | Usage |
 |---|---|
+| `etablissements_sante_gabon.xlsx` | Classeur Excel global : mode d'emploi, synthèse par catégorie et province (formules), annuaire filtrable avec listes déroulantes, sources |
 | `etablissements_sante_gabon.csv` | Import DOKTIS (`php artisan annuaire:importer`), Excel ou Google Sheets (UTF-8 avec BOM) |
 | `etablissements_sante_gabon.json` | Front-end, application mobile, autre API |
 | `etablissements_sante_gabon.sql` | Import direct dans PostgreSQL (upsert sur `code`) |

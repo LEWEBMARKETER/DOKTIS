@@ -95,7 +95,7 @@ export default function FichesAnnuairePage() {
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-slate-600">{c.whatsapp ? formaterNumero(c.whatsapp) : '–'}</td>
+                  <td className="whitespace-nowrap px-4 py-3 text-slate-600">{c.whatsapp ? formaterNumero(c.whatsapp) : '–'}</td>
                   <td className="px-4 py-3">
                     <Badge tone={c.visible_annuaire && c.actif ? 'green' : 'slate'}>{c.visible_annuaire && c.actif ? 'Publiée' : 'Masquée'}</Badge>
                   </td>
